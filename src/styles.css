@@ -51,12 +51,14 @@ main { max-width:1440px; margin:0 auto; }
 .tournament-head { margin:0 clamp(20px,5vw,76px); border-top:1px solid var(--line); padding:28px 0 22px; display:flex; justify-content:space-between; align-items:center; }
 .tournament-head h2,.day-title h2,.more-section h2 { font-size:clamp(28px,3.2vw,44px); letter-spacing:-.055em; margin:7px 0 5px; }
 .tournament-head>div>p:last-child { color:var(--muted); margin:0; }
-.progress-ring { --progress:0%; width:74px; height:74px; border-radius:50%; background:conic-gradient(var(--violet) var(--progress),#24212e 0); position:relative; display:grid; place-items:center; text-align:center; box-shadow:0 0 30px rgba(154,120,255,.08); }
-.progress-ring:before { content:""; position:absolute; inset:6px; border-radius:50%; background:var(--black); }
-.progress-ring span,.progress-ring p { position:relative; z-index:1; }
-.progress-ring span { font-size:19px; font-weight:800; line-height:1; }
-.progress-ring small { color:var(--muted); font-size:12px; }
-.progress-ring p { position:absolute; top:40px; color:var(--muted); font-size:8px; text-transform:uppercase; letter-spacing:.1em; }
+.progress-meter { width:min(300px,42vw); flex:0 0 auto; }
+.progress-meter-head { display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:9px; }
+.progress-meter-head span { color:var(--muted); font:700 10px var(--font-geist-mono); letter-spacing:.14em; }
+.progress-meter-head strong { color:var(--ink); font-size:22px; line-height:1; }
+.progress-meter-head small { color:var(--muted); font-size:13px; }
+.progress-track { height:14px; padding:2px; overflow:hidden; border:1px solid #45395b; background:#24212e; box-shadow:0 0 24px rgba(154,120,255,.08); }
+.progress-track span { display:block; height:100%; min-width:0; background:linear-gradient(90deg,var(--violet),var(--acid)); box-shadow:0 0 14px rgba(154,120,255,.55); transition:width .25s ease; }
+.progress-meter p { margin:7px 0 0; color:var(--muted); font:9px var(--font-geist-mono); letter-spacing:.1em; text-align:right; text-transform:uppercase; }
 .day-tabs { margin:0 clamp(20px,5vw,76px); border:1px solid var(--line); display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); }
 .day-tabs button { padding:20px 22px; display:flex; justify-content:space-between; border:0; border-right:1px solid var(--line); color:var(--muted); background:transparent; cursor:pointer; }
 .day-tabs button:last-child { border-right:0; }
@@ -179,7 +181,7 @@ footer { max-width:1290px; margin:40px auto 0; padding:34px clamp(20px,5vw,76px)
   .desktop-nav { display:none; } .topbar { height:56px; } .icon-button>span:first-child { display:none; }
   .hero-section { grid-template-columns:1fr; min-height:0; padding-top:22px; gap:16px; }
   .hero-copy h1 { font-size:30px; }
-  .tournament-head { align-items:center; } .legend { display:none; }
+  .tournament-head { align-items:flex-start; flex-direction:column; gap:18px; } .progress-meter { width:min(360px,100%); } .legend { display:none; }
   .game-grid { grid-template-columns:1fr; } .game-card { border-right:0; border-bottom:1px solid var(--line); } .game-card:last-child { border-bottom:0; } .game-visual { height:78px; }
   .tournament-grid { grid-template-columns:1fr; } footer { padding-bottom:100px; flex-direction:column; gap:8px; }
   .mobile-nav { display:grid; grid-template-columns:repeat(4,1fr); position:fixed; z-index:40; bottom:0; left:0; right:0; background:rgba(11,9,16,.96); border-top:1px solid #353043; padding-bottom:env(safe-area-inset-bottom); }
@@ -189,7 +191,7 @@ footer { max-width:1290px; margin:40px auto 0; padding:34px clamp(20px,5vw,76px)
 @media (max-width:560px) {
   .hero-section { padding-left:14px; padding-right:14px; } .hero-copy h1 { font-size:28px; } .search-panel { padding:14px; }
   .tournament-head { margin-left:18px; margin-right:18px; } .tournament-head h2 { font-size:34px; }
-  .progress-ring { width:76px; height:76px; flex:0 0 auto; } .progress-ring span { font-size:19px; } .progress-ring p { top:42px; }
+  .progress-meter { width:100%; max-width:none; } .progress-meter-head strong { font-size:20px; }
   .day-tabs { margin:0; border-left:0; border-right:0; overflow-x:auto; } .day-tabs button { padding:17px 13px; flex-direction:column; gap:5px; }
   .day-section,.more-section { padding:54px 14px; } .day-title { padding:0 5px; }
   .matchup { grid-template-columns:1fr 30px 1fr; padding:20px 12px; } .team { gap:8px; font-size:14px; } .team-badge { width:32px; height:32px; }

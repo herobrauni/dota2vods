@@ -180,9 +180,9 @@ function matchIsWatched(match: MatchRecord, watched: Set<string>) {
   return playableGames.length > 0 && playableGames.every((game) => watched.has(gameKey(match, game)));
 }
 
-function ProgressRing({ watchedCount, total }: { watchedCount: number; total: number }) {
+function ProgressBar({ watchedCount, total }: { watchedCount: number; total: number }) {
   const percentage = total ? Math.round((watchedCount / total) * 100) : 0;
-  return <div className="progress-ring" style={{ "--progress": `${percentage}%` } as CSSProperties}><span>{watchedCount}<small>/{total}</small></span><p>matches watched</p></div>;
+  return <div className="progress-meter"><div className="progress-meter-head"><span>WATCHED TODAY</span><strong>{watchedCount}<small>/{total}</small></strong></div><div className="progress-track" role="progressbar" aria-label="Current-day match progress" aria-valuemin={0} aria-valuemax={total} aria-valuenow={watchedCount} aria-valuetext={`${watchedCount} of ${total} current-day matches watched`}><span style={{ width: `${percentage}%` }} /></div><p>{percentage}% complete</p></div>;
 }
 
 function TournamentCard({ tournament, allMatches }: { tournament: Tournament; allMatches: MatchRecord[] }) {
@@ -295,7 +295,7 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
         <SearchPanel search={search} searchType={searchType} onSearch={setSearch} onSearchType={setSearchType} />
       </section>
 
-      <section className="tournament-head"><div><p className="section-label">Featured tournament</p><h2>{selectedTournament.name}</h2><p>{selectedTournament.year} · {availableDates.length} archive date{availableDates.length === 1 ? "" : "s"}</p></div><ProgressRing watchedCount={watchedCurrentDayMatches} total={progressTotal} /></section>
+      <section className="tournament-head"><div><p className="section-label">Featured tournament</p><h2>{selectedTournament.name}</h2><p>{selectedTournament.year} · {availableDates.length} archive date{availableDates.length === 1 ? "" : "s"}</p></div><ProgressBar watchedCount={watchedCurrentDayMatches} total={progressTotal} /></section>
 
       <nav className="day-tabs" aria-label="Tournament dates">
         {availableDates.map((date) => <button type="button" key={date} className={selectedDate === date ? "active" : ""} onClick={() => selectDate(date)} aria-pressed={selectedDate === date}><span>{shortDate(date)}</span><small>{getArchiveForDate(selectedTournament.id, date)?.stage.split(" · ")[0]}</small></button>)}

@@ -69,11 +69,12 @@ describe("Riki VODs frontend", () => {
     expect(screen.getByRole("button", { name: "Match watched" })).toBeInTheDocument();
     expect(matchArticle).toHaveTextContent(`${match.games.length}/${match.games.length} games marked watched`);
     expect(JSON.parse(window.localStorage.getItem("riki-vods-progress-v1") || "[]")).toHaveLength(match.games.length);
-    expect(document.querySelector(".progress-ring")?.textContent).toContain("1/12");
+    expect(document.querySelector(".progress-meter")?.textContent).toContain("1/12");
+    expect(screen.getByRole("progressbar", { name: "Current-day match progress" })).toHaveAttribute("aria-valuenow", "1");
 
     fireEvent.click(screen.getByRole("button", { name: "Match watched" }));
     expect(screen.getAllByRole("button", { name: "Mark match watched" })).toHaveLength(12);
-    expect(document.querySelector(".progress-ring")?.textContent).toContain("0/12");
+    expect(document.querySelector(".progress-meter")?.textContent).toContain("0/12");
   });
 
   it("opens hero picks and exposes source attribution", () => {
