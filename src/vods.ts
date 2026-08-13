@@ -1,4 +1,5 @@
 import dayOneData from "./ti-2026-day1.json";
+import ewcData from "./ewc-2026.json";
 
 export type HeroPick = {
   name: string;
@@ -6,7 +7,7 @@ export type HeroPick = {
 };
 
 export type GameLink = {
-  number: 1 | 2 | 3;
+  number: 1 | 2 | 3 | 4 | 5;
   source: "opendota" | "concealed-fallback";
   matchId?: number;
   vodUrl: string | null;
@@ -27,7 +28,7 @@ export type MatchRecord = {
   teamALogoUrl: string | null;
   teamBLogoUrl: string | null;
   casters: string[];
-  games: [GameLink, GameLink, GameLink];
+  games: GameLink[];
 };
 
 export type ArchiveData = {
@@ -57,11 +58,16 @@ export type Tournament = {
 };
 
 export const archive = dayOneData as ArchiveData;
-export const tournaments: Tournament[] = [{
-  ...archive.tournament,
-  year: 2026,
-}];
-export const matches = archive.matches;
+export const archives: ArchiveData[] = [archive, ...(ewcData.archives as ArchiveData[])];
+export const tournaments: Tournament[] = [...new Map(archives.map((item) => [item.tournament.id, {
+  ...item.tournament,
+  year: Number(item.date.slice(0, 4)),
+}])).values()].sort((left, right) => {
+  const leftDate = archives.find((item) => item.tournament.id === left.id)?.date ?? "";
+  const rightDate = archives.find((item) => item.tournament.id === right.id)?.date ?? "";
+  return leftDate.localeCompare(rightDate);
+});
+export const matches = archives.flatMap((item) => item.matches);
 
 export function fallbackHeroIconUrl(name: string) {
   const exceptions: Record<string, string> = {

@@ -1,9 +1,9 @@
 # Adding a tournament or archive day
 
-The current site is deliberately scoped to one static snapshot:
-`src/ti-2026-day1.json`. The fetcher and frontend have a few Day 1-specific
-constants, so adding another day or tournament is a small implementation task,
-not only a new data file.
+The site stores dated, spoiler-safe snapshots. TI Day 1 lives in
+`src/ti-2026-day1.json`; EWC 2026 uses twelve dated snapshots inside
+`src/ewc-2026.json` for Group Stage, Survival, and Playoffs. The frontend
+imports all snapshots and groups them by tournament.
 
 ## Add TI 2026 Day 2
 
@@ -49,15 +49,21 @@ not only a new data file.
    To intentionally fetch fresh data, use `TI_REFRESH=1`. The generator still
    caches all responses and uses the same request pacing.
 
-6. Change the frontend data model from the single `archive` object to a
-   collection of archives. Add both snapshots to that collection and update
+6. Add the snapshot(s) to the `archives` collection in `src/vods.ts`. Update
    `getMatchesForDate`, `getTournamentDates`, and the tournament/date pages to
-   filter by each snapshot's `tournament.id` and `date`. The current helpers
-   explicitly reference `archive.tournament.id`, `archive.date`, and the
-   `ti-2026-day1-` match ID prefix.
+   filter by each snapshot's `tournament.id` and `date`. Match IDs should use a
+   unique tournament/date prefix.
 
-7. Add tests proving that Day 1 and Day 2 are independently addressable and
-   that searching one day cannot show matches from the other day.
+7. Add tests proving that each new date is independently addressable and that
+   searching one day cannot show matches from another day.
+
+## EWC 2026
+
+The EWC generator is available as `npm run data:ewc-2026`. It reads the
+Liquipedia overview and Group Stage pages, joins Group Stage, Survival, and
+Playoffs to OpenDota league `19785`, and writes `src/ewc-2026.json`. The
+single-player TaiLung–Abed entries are omitted. When Liquipedia provides one
+series VOD for multiple games, the generator reuses that link for each game.
 
 ## Add a different tournament
 

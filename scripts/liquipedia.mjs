@@ -113,7 +113,7 @@ function unique(values) {
 }
 
 function gameNumber(text) {
-  const match = cleanText(text).match(/(?:game|map)\s*([1-3])/i);
+  const match = cleanText(text).match(/(?:game|map)\s*([1-5])/i);
   return match ? Number(match[1]) : null;
 }
 
@@ -125,24 +125,26 @@ function casterNames(popup) {
 }
 
 function teamNames(match) {
-  return unique([...match.querySelectorAll(".brkts-matchlist-opponent[aria-label]")]
-    .map((element) => cleanText(element.getAttribute("aria-label")))
-    .filter((name) => name && name !== "TBD"));
+  const matchlistTeams = [...match.querySelectorAll(".brkts-matchlist-opponent[aria-label]")]
+    .map((element) => cleanText(element.getAttribute("aria-label")));
+  const bracketTeams = [...match.querySelectorAll(".match-info-header-opponent .name a")]
+    .map((element) => cleanText(element.textContent));
+  return unique([...(matchlistTeams.length ? matchlistTeams : bracketTeams)]).filter((name) => name && name !== "TBD");
 }
 
 function extractGames(popup) {
   const rows = [...popup.querySelectorAll(".brkts-popup-body-grid-row")]
     .filter((row) => row.querySelector(".brkts-champion-icon"));
-  const vods = [...popup.querySelectorAll(".vodlink[title^='Watch Game']")]
-    .map((link) => ({
-      number: gameNumber(link.getAttribute("title")),
+  const vods = [...popup.querySelectorAll(".vodlink[title^='Watch Game'], .vodlink[title='Watch VOD']")]
+    .map((link, index) => ({
+      number: gameNumber(link.getAttribute("title")) ?? index + 1,
       url: absoluteExternalUrl(link.querySelector("a[href]")?.getAttribute("href")),
     }))
     .filter((vod) => vod.number && vod.url);
 
   return rows.map((row, index) => ({
     number: index + 1,
-    vods: vods.filter((vod) => vod.number === index + 1).map((vod) => vod.url),
+    vods: (vods.length === 1 ? vods : vods.filter((vod) => vod.number === index + 1)).map((vod) => vod.url),
     heroes: {
       radiant: unique([...row.querySelectorAll(".brkts-popup-side-color--radiant a[title]")]
         .map((link) => cleanText(link.getAttribute("title")))),
@@ -150,6 +152,34 @@ function extractGames(popup) {
         .map((link) => cleanText(link.getAttribute("title")))),
     },
   }));
+}
+
+function matchPageUrl(popup) {
+  return absoluteWikiUrl(
+    [...popup.querySelectorAll("a[href]")]
+      .map((link) => link.getAttribute("href"))
+      .find((href) => /(?:Match:|Match%3A)/i.test(href ?? "")),
+  );
+}
+
+function parseBracketStage(root, stage) {
+  return [...root.querySelectorAll(".brkts-popup")].map((popup) => {
+    const teams = teamNames(popup);
+    const rows = [...popup.querySelectorAll(".brkts-popup-body-grid-row")]
+      .filter((row) => row.querySelector(".brkts-champion-icon"));
+    const timestamp = popup.querySelector("[data-timestamp]")?.getAttribute("data-timestamp");
+    if (teams.length !== 2 || !timestamp || !rows.length) return null;
+    const date = new Date(Number(timestamp) * 1_000).toISOString().slice(0, 10);
+    return {
+      teams,
+      scheduledText: date,
+      date,
+      stage,
+      matchPage: matchPageUrl(popup),
+      casters: casterNames(popup),
+      games: extractGames(popup),
+    };
+  }).filter(Boolean);
 }
 
 /**
@@ -166,12 +196,9 @@ export function parseDayOnePage({ html, page = PAGE, date = DAY_ONE_DATE, revisi
     const teams = teamNames(match);
     if (teams.length !== 2) continue;
     matches.push({
-      teams,
-      scheduledText: date,
-      matchPage: absoluteWikiUrl(
-        [...popup.querySelectorAll("a[href]")]
-          .map((link) => link.getAttribute("href"))
-          .find((href) => /(?:Match:|Match%3A)/i.test(href ?? ""))),
+        teams,
+        scheduledText: date,
+      matchPage: matchPageUrl(popup),
       casters: casterNames(popup),
       games: extractGames(popup),
     });
@@ -192,6 +219,30 @@ export function parseDayOnePage({ html, page = PAGE, date = DAY_ONE_DATE, revisi
     page,
     revisionId,
     date,
+    matches: deduplicated,
+  };
+}
+
+export function parseBracketStages({ html, page }) {
+  const document = new JSDOM(html).window.document;
+  const matches = [];
+  for (const stage of ["Survival", "Playoffs"]) {
+    let heading = document.querySelector(`#${stage}`)?.parentElement;
+    while ((heading = heading?.nextElementSibling) && !heading.classList.contains("toggle-area"));
+    if (heading) matches.push(...parseBracketStage(heading, stage));
+  }
+  const deduplicated = [];
+  const seen = new Set();
+  for (const match of matches) {
+    const key = `${match.teams.join(" vs ")}::${match.matchPage ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduplicated.push(match);
+  }
+  return {
+    source: "Liquipedia MediaWiki API action=parse",
+    attribution: `Data from Liquipedia, https://liquipedia.net/dota2/${page.replaceAll(" ", "_")}`,
+    page,
     matches: deduplicated,
   };
 }
