@@ -136,15 +136,33 @@ describe("spoiler-free VOD date page", () => {
     expect(vods.flatMap((vod) => vod.series).flatMap((series) => series.games).every((game) => game.startSeconds > 0)).toBe(true);
     expect(vods.flatMap((vod) => vod.series).flatMap((series) => series.games).every((game) => game.draftStartSeconds < game.startSeconds)).toBe(true);
     expect(vods.flatMap((vod) => vod.series).flatMap((series) => series.games).every((game) => game.heroes.teamA.length === 5 && game.heroes.teamB.length === 5)).toBe(true);
+    expect(vods.every((vod) => vod.casters.length > 0)).toBe(true);
   });
 
   it("finds series by hero name", () => {
     renderAt(dayOneUrl);
-    const input = screen.getByPlaceholderText("Find a team or hero");
+    const input = screen.getByPlaceholderText("Find a team, hero, or caster");
     fireEvent.change(input, { target: { value: "Huskar" } });
     expect(screen.getAllByText("Nigma Galaxy").length).toBeGreaterThan(0);
     expect(screen.queryAllByText("Team Liquid")).toHaveLength(0);
     expect(screen.getByAltText("Nigma Galaxy: Huskar")).toHaveAttribute("src", heroIconUrl("Huskar"));
+  });
+
+  it("lists casters next to each broadcast", () => {
+    renderAt(dayOneUrl);
+    expect(screen.getByText("Casted by ODPIXEL & Capitalist")).toBeInTheDocument();
+    expect(screen.getByText("Casted by Blitz & Kyle")).toBeInTheDocument();
+  });
+
+  it("finds a broadcast by caster and reveals every series on it", () => {
+    renderAt(dayOneUrl);
+    const input = screen.getByPlaceholderText("Find a team, hero, or caster");
+    fireEvent.change(input, { target: { value: "ODPIXEL" } });
+    // Stream D matched on its caster, so all of its series stay visible...
+    expect(screen.getAllByText("Team Resilience").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("OG").length).toBeGreaterThan(0);
+    // ...while Stream B (Blitz & Kyle) has no caster or team match and drops out.
+    expect(screen.queryByText("Team Liquid")).not.toBeInTheDocument();
   });
 
   it("keeps OpenDota IDs for verified games without inventing one for a concealed game", () => {

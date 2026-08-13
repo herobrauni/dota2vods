@@ -20,6 +20,7 @@ if (isUrl && !videoId) throw new Error("Expected a YouTube watch URL containing 
 const root = resolve(".cache", videoId);
 const audioPath = isUrl ? join(root, "audio.m4a") : resolve(input);
 const transcriptPath = join(root, "transcript.local.json");
+const castersPath = join(root, "casters.candidates.json");
 const venv = resolve(".venv", "bin");
 const ytDlp = existsSync(join(venv, "yt-dlp")) ? join(venv, "yt-dlp") : "yt-dlp";
 const python = existsSync(join(venv, "python")) ? join(venv, "python") : "python3";
@@ -100,4 +101,18 @@ await command(python, [
   "--model", process.env.WHISPER_MODEL || "base.en",
 ]);
 
-console.log("Next: review OpenDota/transcript candidates with HUD frames; candidates are never auto-published.");
+if (!existsSync(castersPath) || process.env.CASTERS_REFRESH === "1") {
+  try {
+    await command(process.execPath, [
+      resolve("scripts", "extract-casters.mjs"),
+      transcriptPath,
+      castersPath,
+    ]);
+  } catch (error) {
+    console.warn(`Caster extraction unavailable: ${error.message}`);
+  }
+} else {
+  console.log(`Casters: using cached candidates at ${castersPath}`);
+}
+
+console.log("Next: review OpenDota, transcript, and caster candidates with HUD frames; candidates are never auto-published.");

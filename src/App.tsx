@@ -77,6 +77,28 @@ function datePath(tournament: Tournament, date: string) {
   return `${tournamentPath(tournament)}/${date}`;
 }
 
+// Commentary talent for a broadcast is public metadata (not a result), so it is
+// safe to show and to include in the spoiler-free search alongside teams/heroes.
+function seriesSearchable(series: Series) {
+  return [
+    series.teamA,
+    series.teamB,
+    ...series.games.flatMap((game) => [...game.heroes.teamA, ...game.heroes.teamB]),
+  ].join(" ").toLowerCase();
+}
+
+function vodMatchesQuery(vod: Vod, clean: string) {
+  if (!clean) return true;
+  if (vod.casters.some((caster) => caster.toLowerCase().includes(clean))) return true;
+  return vod.series.some((series) => seriesSearchable(series).includes(clean));
+}
+
+function formatCasters(casters: string[]) {
+  if (casters.length <= 1) return casters[0] ?? "";
+  if (casters.length === 2) return `${casters[0]} & ${casters[1]}`;
+  return `${casters.slice(0, -1).join(", ")} & ${casters[casters.length - 1]}`;
+}
+
 function SeriesCard({ series, videoId, index, query }: { series: Series; videoId: string; index: number; query: string }) {
   const cleanQuery = query.trim().toLowerCase();
   return (
@@ -160,22 +182,27 @@ function SeriesCard({ series, videoId, index, query }: { series: Series; videoId
 
 function BroadcastCard({ vod, query }: { vod: Vod; query: string }) {
   const clean = query.trim().toLowerCase();
-  const filteredSeries = clean ? vod.series.filter((series) => {
-    const searchable = [
-      series.teamA,
-      series.teamB,
-      ...series.games.flatMap((game) => [...game.heroes.teamA, ...game.heroes.teamB]),
-    ].join(" ").toLowerCase();
-    return searchable.includes(clean);
-  }) : vod.series;
+  const casterMatch = Boolean(clean) && vod.casters.some((caster) => caster.toLowerCase().includes(clean));
+  // A caster match is broadcast-wide: reveal every series on that broadcast.
+  const filteredSeries = casterMatch || !clean
+    ? vod.series
+    : vod.series.filter((series) => seriesSearchable(series).includes(clean));
 
-  if (clean && !filteredSeries.length) return null;
+  if (clean && !casterMatch && !filteredSeries.length) return null;
   const streamCode = vod.stream.replace("English Stream ", "");
 
   return (
     <article className="vod-block" aria-label={vod.stream}>
       <div className="vod-heading">
-        <div><span>{vod.stream}</span><small>{vod.stage} · {vod.language}</small></div>
+        <div>
+          <span>{vod.stream}</span>
+          <small>{vod.stage} · {vod.language}</small>
+          {vod.casters.length > 0 && (
+            <small className={casterMatch ? "cast-line cast-line-match" : "cast-line"}>
+              Casted by {formatCasters(vod.casters)}
+            </small>
+          )}
+        </div>
         <a href={`https://www.youtube.com/watch?v=${vod.id}`} target="_blank" rel="noreferrer">Full broadcast ↗</a>
       </div>
       <div className="broadcast-card">
@@ -276,12 +303,7 @@ function DatePage({ tournament, date, allVods }: { tournament: Tournament; date:
   const dateVods = useMemo(() => getVodsForDate(allVods, tournament.id, date), [allVods, tournament.id, date]);
   const visibleVodCount = useMemo(() => {
     const clean = query.trim().toLowerCase();
-    if (!clean) return dateVods.length;
-    return dateVods.filter((vod) => vod.series.some((series) => [
-      series.teamA,
-      series.teamB,
-      ...series.games.flatMap((game) => [...game.heroes.teamA, ...game.heroes.teamB]),
-    ].join(" ").toLowerCase().includes(clean))).length;
+    return clean ? dateVods.filter((vod) => vodMatchesQuery(vod, clean)).length : dateVods.length;
   }, [dateVods, query]);
 
   if (!dateVods.length) return <NotFoundPage />;
@@ -307,9 +329,9 @@ function DatePage({ tournament, date, allVods }: { tournament: Tournament; date:
             <p className="broadcast-meta">{dateVods[0].stage} <span /> {dateVods.length} English {dateVods.length === 1 ? "broadcast" : "broadcasts"}</p>
           </div>
           <label className="search-field">
-            <span className="sr-only">Filter by team or hero</span>
+            <span className="sr-only">Filter by team, hero, or caster</span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a team or hero" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a team, hero, or caster" />
           </label>
         </div>
 
