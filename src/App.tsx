@@ -340,7 +340,14 @@ function Footer() {
         <div><p className="eyebrow">HOW IT WORKS</p><h2>Scores stay off the page.</h2></div>
         <p>Choose a tournament and a date before any matchups appear. Every best-of-three always shows three identical game choices, with no scores, winners, durations, or revealing thumbnails.</p>
       </section>
-      <footer><span>DOTA<span>VODS</span></span><p>Built for catching up, not spoiling the result.</p><a href="https://www.youtube.com/@dota2" target="_blank" rel="noreferrer">Official dota2 channel ↗</a></footer>
+      <footer>
+        <span>DOTA<span>VODS</span></span>
+        <div className="footer-copy">
+          <p>Built for catching up, not spoiling the result.</p>
+          <small>Dota and the Dota 2 logo are trademarks of Valve Corporation. This independent fan project is not affiliated with or endorsed by Valve.</small>
+        </div>
+        <a href="https://www.youtube.com/@dota2" target="_blank" rel="noreferrer">Official dota2 channel ↗</a>
+      </footer>
     </>
   );
 }

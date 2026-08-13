@@ -18,6 +18,11 @@ beforeEach(() => {
 });
 
 describe("tournament and date navigation", () => {
+  it("shows the Valve affiliation disclaimer", () => {
+    renderAt("/");
+    expect(screen.getByText(/independent fan project is not affiliated with or endorsed by Valve/i)).toBeInTheDocument();
+  });
+
   it("starts with TI 2026 and does not expose any matchups", () => {
     renderAt("/");
 

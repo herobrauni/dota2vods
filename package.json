@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
+    "test:hud": ".venv/bin/python scripts/test_hud.py",
     "ingest": "node scripts/ingest-vod.mjs"
   },
   "dependencies": {

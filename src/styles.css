@@ -150,6 +150,9 @@ svg { display: block; }
 .about > p { color: #8c9399; font-size: 13px; line-height: 1.75; }
 footer { min-height: 94px; padding: 0 clamp(24px, 5vw, 76px); display: flex; align-items: center; gap: 36px; border-top: 1px solid #23282d; color: #6f767d; font-size: 11px; }
 footer > span { color: #ccd0d2; font: 800 14px Manrope; }
+.footer-copy { max-width: 690px; }
+.footer-copy p { margin-bottom: 4px; color: #969da3; }
+.footer-copy small { display: block; line-height: 1.45; }
 footer a { margin-left: auto; color: #969da3; }
 footer a:hover { color: #fff; }
 
@@ -189,7 +192,7 @@ footer a:hover { color: #fff; }
   .about > svg { width: 36px; }
   .about > p { grid-column: 1; margin-top: 0; }
   footer { padding-block: 25px; flex-wrap: wrap; gap: 10px 22px; }
-  footer p { width: 100%; order: 3; }
+  .footer-copy { width: 100%; order: 3; }
   .archive-section, .date-section { padding-top: 58px; }
   .tournament-card { padding: 25px 21px; grid-template-columns: 55px 1fr; gap: 17px; }
   .tournament-year { width: 55px; }

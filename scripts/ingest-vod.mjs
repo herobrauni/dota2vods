@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { getOpenDotaCandidates } from "./opendota.mjs";
 const OFFICIAL_CHANNEL_ID = "UCTQKT5QqO3h7y32G8VzuySQ";
 const input = process.argv[2];
 const validateOnly = process.argv.includes("--validate-only");
+const hudOnly = process.argv.includes("--hud-only");
+const skipHud = process.argv.includes("--skip-hud");
 if (!input) {
-  console.error("Usage: npm run ingest -- <youtube-url-or-local-audio>");
+  console.error("Usage: npm run ingest -- <youtube-url-or-local-audio> [--validate-only|--hud-only|--skip-hud]");
   process.exit(1);
 }
 
@@ -16,6 +18,9 @@ const isUrl = /^https?:\/\//.test(input);
 const parsed = isUrl ? new URL(input) : null;
 const videoId = parsed?.searchParams.get("v") ?? "local-audio";
 if (isUrl && !videoId) throw new Error("Expected a YouTube watch URL containing ?v=");
+if (hudOnly && (!isUrl || skipHud)) {
+  throw new Error("--hud-only requires a YouTube URL and cannot be combined with --skip-hud");
+}
 
 const root = resolve(".cache", videoId);
 const audioPath = isUrl ? join(root, "audio.m4a") : resolve(input);
@@ -23,6 +28,8 @@ const transcriptPath = join(root, "transcript.local.json");
 const venv = resolve(".venv", "bin");
 const ytDlp = existsSync(join(venv, "yt-dlp")) ? join(venv, "yt-dlp") : "yt-dlp";
 const python = existsSync(join(venv, "python")) ? join(venv, "python") : "python3";
+const candidatePath = join(root, "opendota.candidates.json");
+const hudEvidencePath = join(root, "hud.evidence.json");
 await mkdir(root, { recursive: true });
 
 async function command(name, args) {
@@ -33,6 +40,20 @@ async function command(name, args) {
       ? resolveCommand()
       : rejectCommand(new Error(`${name} exited with code ${code}`)));
   });
+}
+
+function hudCacheMatchesSelection(path, matchIds) {
+  try {
+    const report = JSON.parse(readFileSync(path, "utf8"));
+    const cached = new Set(report.games.map((game) => String(game.matchId)));
+    if (!matchIds) {
+      return report.summary.gamesScanned === report.summary.availableCandidateGames;
+    }
+    const requested = new Set(matchIds.split(",").map((value) => value.trim()).filter(Boolean));
+    return cached.size === requested.size && [...cached].every((value) => requested.has(value));
+  } catch {
+    return false;
+  }
 }
 
 async function validateOfficialEnglishVod(sourceUrl) {
@@ -59,7 +80,6 @@ async function validateOfficialEnglishVod(sourceUrl) {
 
 if (isUrl) {
   const metadata = await validateOfficialEnglishVod(input);
-  const candidatePath = join(root, "opendota.candidates.json");
   if (existsSync(candidatePath) && process.env.OPENDOTA_REFRESH !== "1") {
     console.log(`OpenDota: using cached candidates at ${candidatePath}`);
   } else {
@@ -76,6 +96,35 @@ if (isUrl) {
     }
   }
   if (validateOnly) process.exit(0);
+
+  if (!skipHud) {
+    if (!existsSync(candidatePath)) {
+      const message = "HUD detection requires an OpenDota candidate report";
+      if (hudOnly) throw new Error(message);
+      console.warn(`${message}; continuing without HUD evidence`);
+    } else if (
+      existsSync(hudEvidencePath)
+      && process.env.HUD_REFRESH !== "1"
+      && hudCacheMatchesSelection(hudEvidencePath, process.env.HUD_MATCH_IDS)
+    ) {
+      console.log(`HUD: using cached evidence at ${hudEvidencePath}`);
+    } else {
+      try {
+        await command(python, [
+          resolve("scripts", "detect-hud.py"),
+          input,
+          candidatePath,
+          hudEvidencePath,
+          ...(process.env.HUD_MATCH_IDS ? ["--match-ids", process.env.HUD_MATCH_IDS] : []),
+          ...(process.env.HUD_VERBOSE === "1" ? ["--verbose"] : []),
+        ]);
+      } catch (error) {
+        if (hudOnly) throw error;
+        console.warn(`HUD detection unavailable: ${error.message}`);
+      }
+    }
+  }
+  if (hudOnly) process.exit(0);
 }
 
 if (isUrl && !existsSync(audioPath)) {
@@ -100,4 +149,4 @@ await command(python, [
   "--model", process.env.WHISPER_MODEL || "base.en",
 ]);
 
-console.log("Next: review OpenDota/transcript candidates with HUD frames; candidates are never auto-published.");
+console.log("Next: review OpenDota, HUD, and transcript evidence; candidates are never auto-published.");
