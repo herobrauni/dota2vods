@@ -22,7 +22,7 @@ svg { display: block; }
 .spoiler-badge { display: flex; align-items: center; gap: 8px; color: #9aa1a7; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; }
 .spoiler-badge svg { width: 16px; fill: none; stroke: #5fcda0; stroke-width: 1.8; }
 
-.hero { min-height: 510px; padding: 104px clamp(24px, 8vw, 130px) 76px; position: relative; border-bottom: 1px solid #22272c; background-image: linear-gradient(90deg, rgba(9,12,16,.97) 0%, rgba(9,12,16,.8) 48%, rgba(9,12,16,.16)), url('https://i.ytimg.com/vi/VaZpuoMhjmg/maxresdefault.jpg'); background-size: cover; background-position: center 43%; }
+.hero { min-height: 510px; padding: 104px clamp(24px, 8vw, 130px) 76px; position: relative; border-bottom: 1px solid #22272c; background-image: linear-gradient(90deg, rgba(9,12,16,.97), rgba(9,12,16,.82)), repeating-linear-gradient(90deg, transparent 0, transparent 79px, rgba(255,255,255,.018) 80px); background-size: cover; background-position: center 43%; }
 .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, #090c10 0, transparent 40%), repeating-linear-gradient(90deg, transparent 0, transparent 79px, rgba(255,255,255,.018) 80px); pointer-events: none; }
 .hero > *:not(.hero-glow) { position: relative; z-index: 2; }
 .hero-glow { position: absolute; width: 390px; height: 390px; left: -100px; top: 40px; border-radius: 50%; background: rgba(197,52,31,.12); filter: blur(100px); }
@@ -100,6 +100,11 @@ svg { display: block; }
 .vod-heading a { color: #858d94; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
 .vod-heading a:hover { color: #d64a32; }
 .broadcast-card { display: grid; grid-template-columns: minmax(280px, .82fr) 1.8fr; min-height: 510px; border: 1px solid #2b3035; border-top: 0; background: #0e1216; box-shadow: 0 28px 80px rgba(0,0,0,.22); }
+.match-card { display: block; min-height: 0; }
+.match-card .series-list { padding: 13px 28px; }
+.match-block .vod-heading > div > span i { color: #d64a32; font-style: normal; }
+.match-block .series-card { grid-template-columns: 47px minmax(190px, .7fr) minmax(390px, 1.5fr); }
+.match-block .series-card:last-child { border-bottom: 0; }
 .broadcast-art { min-height: 100%; position: relative; background-size: cover; background-position: center; overflow: hidden; }
 .broadcast-art::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,.06), rgba(0,0,0,.06) 1px, transparent 1px, transparent 3px); }
 .broadcast-art-overlay { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(10,12,15,.94), transparent 70%), linear-gradient(90deg, rgba(120,35,22,.32), transparent); filter: saturate(.7); }
@@ -120,12 +125,15 @@ svg { display: block; }
 .team-name { margin: 0; font: 700 17px/1.3 Manrope; letter-spacing: -.015em; }
 .versus { display: block; margin: -1px 0 -1px 43px; color: #d64a32; font: 700 9px/1 Inter; text-transform: uppercase; }
 .best-of { padding: 5px 7px; color: #606870; border: 1px solid #30363b; font-size: 8px; font-weight: 700; letter-spacing: .12em; white-space: nowrap; }
+.series-meta { display: flex; align-items: flex-end; gap: 7px; flex-direction: column; }
+.series-status { padding: 4px 7px; color: #db7a67; border: 1px solid #74372d; background: #271713; font-size: 8px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
 .game-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #30363b; }
 .game-panel { min-width: 0; border-right: 1px solid #30363b; background: #11161b; }
 .game-panel:last-child { border-right: 0; }
 .game-panel > p { margin: 0; padding: 7px 9px; color: #747c83; border-bottom: 1px solid #30363b; font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
-.game-actions { display: grid; grid-template-columns: 1fr 1fr; }
+.game-actions { display: grid; grid-template-columns: 1fr; }
 .game-link { min-height: 40px; padding: 0 8px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #abb1b6; background: #14191e; font-size: 10px; font-weight: 700; transition: background .18s, color .18s; }
+.game-link.unavailable, .game-link.unavailable:hover { color: #abb1b6; background: #14191e; cursor: default; opacity: .48; }
 .game-link + .game-link { border-left: 1px solid #30363b; }
 .draft-link { color: #8f979d; background: #101419; }
 .game-link:hover, .game-link:focus-visible { color: #fff; background: #d64a32; outline: 0; }
