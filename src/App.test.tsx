@@ -21,10 +21,18 @@ describe("Riki VODs frontend", () => {
   it("shows exactly the current EWC and TI tournaments", () => {
     renderAt("/");
     expect(tournaments.map((tournament) => tournament.id)).toEqual(["ewc-2026", "ti-2026"]);
+    expect(screen.getAllByRole("link", { name: "Tournaments" })[0]).toHaveAttribute("href", "/tournaments");
     expect(screen.getByRole("heading", { name: "The International 2026", level: 2 })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Esports World Cup 2026", level: 3 })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Current tournaments", level: 2 })).not.toBeInTheDocument();
+  });
+
+  it("provides a dedicated tournament selection page", () => {
+    renderAt("/tournaments");
+    expect(screen.getByRole("heading", { name: "Choose your tournament", level: 1 })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Esports World Cup 2026", level: 3 })).toBeInTheDocument();
-    expect(screen.queryByText("DreamLeague Season 26")).not.toBeInTheDocument();
-    expect(screen.queryByText("ESL One Raleigh")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "The International 2026", level: 3 })).toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: / versus / })).not.toBeInTheDocument();
   });
 
   it("renders the selected TI date and all twelve matches", () => {
@@ -58,9 +66,11 @@ describe("Riki VODs frontend", () => {
     expect(screen.getByRole("button", { name: "Match watched" })).toBeInTheDocument();
     expect(matchArticle).toHaveTextContent(`${match.games.length}/${match.games.length} games marked watched`);
     expect(JSON.parse(window.localStorage.getItem("riki-vods-progress-v1") || "[]")).toHaveLength(match.games.length);
+    expect(document.querySelector(".progress-ring")?.textContent).toContain("1/12");
 
     fireEvent.click(screen.getByRole("button", { name: "Match watched" }));
     expect(screen.getAllByRole("button", { name: "Mark match watched" })).toHaveLength(12);
+    expect(document.querySelector(".progress-ring")?.textContent).toContain("0/12");
   });
 
   it("opens hero picks and exposes source attribution", () => {

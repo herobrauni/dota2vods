@@ -175,15 +175,27 @@ function gameKey(match: MatchRecord, game: GameLink) {
   return `${match.id}:game-${game.number}`;
 }
 
-function ProgressRing({ watchedCount, total }: { watchedCount: number; total: number }) {
-  const percentage = total ? Math.round((watchedCount / total) * 100) : 0;
-  return <div className="progress-ring" style={{ "--progress": `${percentage}%` } as CSSProperties}><span>{watchedCount}<small>/{total}</small></span><p>watched</p></div>;
+function matchIsWatched(match: MatchRecord, watched: Set<string>) {
+  const playableGames = match.games.filter((game) => game.vodUrl);
+  return playableGames.length > 0 && playableGames.every((game) => watched.has(gameKey(match, game)));
 }
 
-function TournamentCard({ tournament, selected, allMatches, onSelect }: { tournament: Tournament; selected: boolean; allMatches: MatchRecord[]; onSelect: () => void }) {
+function ProgressRing({ watchedCount, total }: { watchedCount: number; total: number }) {
+  const percentage = total ? Math.round((watchedCount / total) * 100) : 0;
+  return <div className="progress-ring" style={{ "--progress": `${percentage}%` } as CSSProperties}><span>{watchedCount}<small>/{total}</small></span><p>matches watched</p></div>;
+}
+
+function TournamentCard({ tournament, allMatches }: { tournament: Tournament; allMatches: MatchRecord[] }) {
   const dates = getTournamentDates(allMatches, tournament.id);
   const matchCount = dates.reduce((count, date) => count + getMatchesForDate(allMatches, tournament.id, date).length, 0);
-  return <article className={`tournament-card ${selected ? "active" : ""}`}><span>{tournament.shortName.toUpperCase()} · {tournament.year}</span><h3>{tournament.name}</h3><p>{dates.length} date{dates.length === 1 ? "" : "s"} · {matchCount} matches</p><SiteLink href={tournamentPath(tournament)} ariaLabel={`Open ${tournament.name}`}>Browse archive ↗</SiteLink></article>;
+  return <article className="tournament-card"><span>{tournament.shortName.toUpperCase()} · {tournament.year}</span><h3>{tournament.name}</h3><p>{dates.length} date{dates.length === 1 ? "" : "s"} · {matchCount} matches</p><SiteLink href={tournamentPath(tournament)} ariaLabel={`Open ${tournament.name}`}>Browse archive ↗</SiteLink></article>;
+}
+
+function TournamentSelectionPage({ allMatches }: { allMatches: MatchRecord[] }) {
+  return <main className="tournament-picker-page">
+    <section className="hero-section tournament-picker-hero"><div className="hero-copy"><p className="kicker"><span className="live-dot" /> Spoiler protection is on</p><h1>Choose your tournament</h1><p className="hero-lede">Pick an event to browse its available dates. Matchups stay on the event page until you choose a day.</p></div></section>
+    <section className="more-section tournament-picker-section"><div className="day-title"><div><p className="section-label">Browse archive</p><h2>Current tournaments</h2></div></div><div className="tournament-grid">{tournaments.map((tournament) => <TournamentCard key={tournament.id} tournament={tournament} allMatches={allMatches} />)}</div></section>
+  </main>;
 }
 
 function HowItWorks({ onClose, onOpenSettings }: { onClose: () => void; onOpenSettings: () => void }) {
@@ -191,7 +203,7 @@ function HowItWorks({ onClose, onOpenSettings }: { onClose: () => void; onOpenSe
 }
 
 function Settings({ watchedCount, total, onClose, onReset }: { watchedCount: number; total: number; onClose: () => void; onReset: () => void }) {
-  return <div className="modal-backdrop" onMouseDown={onClose}><section className="settings-sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title" onMouseDown={(event) => event.stopPropagation()}><div className="sheet-head"><div><p className="section-label">Preferences</p><h2 id="settings-title">Spoiler settings</h2></div><button type="button" onClick={onClose} aria-label="Close settings">×</button></div><div className="setting-row"><div><strong>Hide result metadata</strong><p>Scores, winners, durations, and result-bearing titles are never included in the archive.</p></div><span className="fixed-toggle">ON</span></div><div className="setting-row"><div><strong>Local watch progress</strong><p>Mark games or complete matches while you catch up.</p></div><span className="fixed-toggle">ON</span></div><div className="local-box"><span>THIS DEVICE ONLY</span><strong>{watchedCount} of {total} available games marked watched</strong><p>No account is created. Clearing browser data also clears this progress.</p><button type="button" onClick={onReset}>Reset local progress</button></div></section></div>;
+  return <div className="modal-backdrop" onMouseDown={onClose}><section className="settings-sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title" onMouseDown={(event) => event.stopPropagation()}><div className="sheet-head"><div><p className="section-label">Preferences</p><h2 id="settings-title">Spoiler settings</h2></div><button type="button" onClick={onClose} aria-label="Close settings">×</button></div><div className="setting-row"><div><strong>Hide result metadata</strong><p>Scores, winners, durations, and result-bearing titles are never included in the archive.</p></div><span className="fixed-toggle">ON</span></div><div className="setting-row"><div><strong>Local watch progress</strong><p>Mark games or complete matches while you catch up.</p></div><span className="fixed-toggle">ON</span></div><div className="local-box"><span>THIS DEVICE ONLY</span><strong>{watchedCount} of {total} current-day matches watched</strong><p>No account is created. Clearing browser data also clears this progress.</p><button type="button" onClick={onReset}>Reset local progress</button></div></section></div>;
 }
 
 function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
@@ -229,9 +241,7 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
   }, [watched, hydrated]);
 
   const filteredMatches = useMemo(() => dateMatches.filter((match) => matchesForSearch(match, search, searchType)), [dateMatches, search, searchType]);
-  const allPlayableGames = useMemo(() => allMatches.flatMap((match) => match.games.filter((game) => game.vodUrl).map((game) => gameKey(match, game))), [allMatches]);
   const watchedSet = useMemo(() => new Set(watched), [watched]);
-  const watchedCount = allPlayableGames.filter((gameId) => watchedSet.has(gameId)).length;
 
   function showNotice(message: string) {
     setNotice(message);
@@ -261,36 +271,31 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
     setSettingsOpen(false);
   }
 
-  function selectTournament(tournament: Tournament) {
-    const dates = getTournamentDates(allMatches, tournament.id);
-    const date = dates[dates.length - 1];
-    window.history.pushState({}, "", date ? datePath(tournament, date) : tournamentPath(tournament));
-    window.dispatchEvent(new PopStateEvent("popstate"));
-    window.scrollTo({ top: 0 });
-  }
-
   function selectDate(date: string) {
     window.history.pushState({}, "", datePath(selectedTournament, date));
     window.dispatchEvent(new PopStateEvent("popstate"));
     window.scrollTo({ top: 0 });
   }
 
-  const progressTotal = allPlayableGames.length;
+  const currentDayMatches = dateMatches.filter((match) => match.games.some((game) => game.vodUrl));
+  const watchedCurrentDayMatches = currentDayMatches.filter((match) => matchIsWatched(match, watchedSet)).length;
+  const progressTotal = currentDayMatches.length;
+  const isTournamentPicker = pathname === "/tournaments";
 
   return <div className={`site-shell ${search ? "searching" : ""}`}>
     <header className="topbar">
       <SiteLink className="brand" href="/" ariaLabel="Riki VODs home"><span className="brand-mark" aria-hidden="true"><i /><i /></span><span>RIKI<span className="brand-dot">.</span>VODS</span></SiteLink>
-      <nav className="desktop-nav" aria-label="Primary navigation"><SiteLink className="active" href="/">Tournaments</SiteLink><a href="#continue">Continue watching</a><button type="button" onClick={() => setHowOpen(true)}>How it works</button></nav>
+      <nav className="desktop-nav" aria-label="Primary navigation"><SiteLink className={pathname.startsWith("/tournaments") ? "active" : undefined} href="/tournaments">Tournaments</SiteLink>{isTournamentPicker ? <SiteLink href="/">Continue watching</SiteLink> : <a href="#continue">Continue watching</a>}<button type="button" onClick={() => setHowOpen(true)}>How it works</button></nav>
       <button type="button" className="icon-button" onClick={() => setSettingsOpen(true)} aria-label="Open spoiler settings"><span>Spoiler settings</span><ShieldIcon /></button>
     </header>
 
-    <main>
+    {isTournamentPicker ? <TournamentSelectionPage allMatches={allMatches} /> : <main>
       <section className="hero-section">
         <div className="hero-copy"><p className="kicker"><span className="live-dot" /> Spoiler protection is on</p><h1>Spoiler-free Dota 2 VODs</h1><p className="hero-lede">Scores, result metadata, and your watch boundary stay out of sight while you catch up across the current archive.</p></div>
         <SearchPanel search={search} searchType={searchType} onSearch={setSearch} onSearchType={setSearchType} />
       </section>
 
-      <section className="tournament-head"><div><p className="section-label">Featured tournament</p><h2>{selectedTournament.name}</h2><p>{selectedTournament.year} · {availableDates.length} archive date{availableDates.length === 1 ? "" : "s"}</p></div><ProgressRing watchedCount={watchedCount} total={progressTotal} /></section>
+      <section className="tournament-head"><div><p className="section-label">Featured tournament</p><h2>{selectedTournament.name}</h2><p>{selectedTournament.year} · {availableDates.length} archive date{availableDates.length === 1 ? "" : "s"}</p></div><ProgressRing watchedCount={watchedCurrentDayMatches} total={progressTotal} /></section>
 
       <nav className="day-tabs" aria-label="Tournament dates">
         {availableDates.map((date) => <button type="button" key={date} className={selectedDate === date ? "active" : ""} onClick={() => selectDate(date)} aria-pressed={selectedDate === date}><span>{shortDate(date)}</span><small>{getArchiveForDate(selectedTournament.id, date)?.stage.split(" · ")[0]}</small></button>)}
@@ -305,13 +310,12 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
         </div>
       </section>
 
-      {!search && <section className="more-section"><div className="day-title"><div><p className="section-label">Browse archive</p><h2>Current tournaments</h2></div></div><div className="tournament-grid">{tournaments.map((tournament) => <TournamentCard key={tournament.id} tournament={tournament} selected={tournament.id === selectedTournament.id} allMatches={allMatches} onSelect={() => selectTournament(tournament)} />)}</div></section>}
-    </main>
+    </main>}
 
     <footer id="about"><span>riki-vods</span><p>No accounts. Your watch history never leaves this browser. · Only EWC 2026 and TI 2026 are in this archive. · Data: <a href={(selectedArchive ?? archive).sources.liquipedia} target="_blank" rel="noreferrer">Liquipedia</a> + <a href={(selectedArchive ?? archive).sources.opendota} target="_blank" rel="noreferrer">OpenDota</a>.</p></footer>
-    <nav className="mobile-nav" aria-label="Mobile navigation"><a href="#continue">Progress</a><button type="button" onClick={() => setHowOpen(true)}>How</button><button type="button" onClick={() => setSettingsOpen(true)}>Cloak</button></nav>
+    <nav className="mobile-nav" aria-label="Mobile navigation"><SiteLink className={pathname.startsWith("/tournaments") ? "active" : undefined} href="/tournaments">Tournaments</SiteLink>{isTournamentPicker ? <SiteLink href="/">Progress</SiteLink> : <a href="#continue">Progress</a>}<button type="button" onClick={() => setHowOpen(true)}>How</button><button type="button" onClick={() => setSettingsOpen(true)}>Cloak</button></nav>
     {howOpen && <HowItWorks onClose={() => setHowOpen(false)} onOpenSettings={() => { setHowOpen(false); setSettingsOpen(true); }} />}
-    {settingsOpen && <Settings watchedCount={watchedCount} total={progressTotal} onClose={() => setSettingsOpen(false)} onReset={resetProgress} />}
+    {settingsOpen && <Settings watchedCount={watchedCurrentDayMatches} total={progressTotal} onClose={() => setSettingsOpen(false)} onReset={resetProgress} />}
     {notice && <div className="toast" role="status">✓ {notice}</div>}
   </div>;
 }

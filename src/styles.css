@@ -22,6 +22,7 @@ button { color:inherit; }
 .shield { width:24px; height:24px; display:grid; place-items:center; border-radius:50%; background:var(--violet); color:#0a0810; font-size:10px; box-shadow:0 0 14px rgba(154,120,255,.45); }
 main { max-width:1440px; margin:0 auto; }
 .hero-section { min-height:180px; display:grid; grid-template-columns:minmax(260px,.75fr) minmax(420px,1.25fr); align-items:center; gap:clamp(28px,5vw,72px); padding:24px clamp(20px,5vw,76px); position:relative; border-bottom:1px solid var(--line); }
+.tournament-picker-hero { min-height:260px; grid-template-columns:1fr; }
 .hero-section:before { display:none; }
 .smoke { position:absolute; border-radius:50%; pointer-events:none; filter:blur(22px); opacity:.18; mix-blend-mode:screen; }
 .smoke:before,.smoke:after { content:""; position:absolute; border-radius:50%; background:inherit; }

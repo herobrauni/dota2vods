@@ -10,6 +10,10 @@ and series-length indicators. Each match renders its spoiler-safe game controls
 and can be marked watched as a whole or game by game. Watch progress is stored
 only in the visitor's browser under `localStorage`; it never leaves the device.
 
+Use the `Tournaments` navigation item to open the tournament picker. On an
+event page, the progress ring counts completed matches from the selected date
+only; it does not include matches from other archive days or tournaments.
+
 ## Run the site
 
 ```bash
