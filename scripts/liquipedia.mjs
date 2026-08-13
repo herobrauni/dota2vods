@@ -132,6 +132,11 @@ export function extractBestOf(popup) {
   return match ? Number(match[1]) : null;
 }
 
+function scheduledAt(popup) {
+  const timestamp = Number(popup.querySelector("[data-timestamp]")?.getAttribute("data-timestamp"));
+  return Number.isFinite(timestamp) ? new Date(timestamp * 1_000).toISOString() : null;
+}
+
 function teamNames(match) {
   const matchlistTeams = [...match.querySelectorAll(".brkts-matchlist-opponent[aria-label]")]
     .map((element) => cleanText(element.getAttribute("aria-label")));
@@ -175,12 +180,13 @@ function parseBracketStage(root, stage) {
     const teams = teamNames(popup);
     const rows = [...popup.querySelectorAll(".brkts-popup-body-grid-row")]
       .filter((row) => row.querySelector(".brkts-champion-icon"));
-    const timestamp = popup.querySelector("[data-timestamp]")?.getAttribute("data-timestamp");
-    if (teams.length !== 2 || !timestamp || !rows.length) return null;
-    const date = new Date(Number(timestamp) * 1_000).toISOString().slice(0, 10);
+    const matchScheduledAt = scheduledAt(popup);
+    if (teams.length !== 2 || !matchScheduledAt || !rows.length) return null;
+    const date = matchScheduledAt.slice(0, 10);
     return {
       teams,
       scheduledText: date,
+      scheduledAt: matchScheduledAt,
       date,
       stage,
       matchPage: matchPageUrl(popup),
@@ -208,6 +214,7 @@ export function parseDayOnePage({ html, page = PAGE, date = DAY_ONE_DATE, revisi
     matches.push({
         teams,
         scheduledText: date,
+        scheduledAt: scheduledAt(popup),
         matchPage: matchPageUrl(popup),
         casters: casterNames(popup),
         bestOf: extractBestOf(popup),

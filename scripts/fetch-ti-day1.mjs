@@ -158,53 +158,59 @@ export function toWebsiteData({ liquipedia, matches, teams, detailsByMatchId, he
     matchesByPair.get(key).push(match);
   }
 
-  const outputMatches = liquipedia.matches.map((liquipediaMatch) => {
-    const [liquipediaTeamA, liquipediaTeamB] = liquipediaMatch.teams;
-    const seriesBestOf = supportedBestOf(liquipediaMatch.bestOf);
-    const candidates = (matchesByPair.get(pairKey(liquipediaTeamA, liquipediaTeamB)) ?? [])
-      .sort((left, right) => left.start_time - right.start_time);
-    if (!candidates.length) {
-      throw new Error(`Could not match Liquipedia series ${liquipediaTeamA} vs ${liquipediaTeamB} to OpenDota`);
-    }
-    const seriesId = candidates.find((match) => match.series_id != null)?.series_id ?? candidates[0].series_id;
-    let seriesMatches = candidates.filter((match) => match.series_id === seriesId || (match.series_id == null && candidates.length <= 3));
-    if (seriesMatches.length < 2 && candidates.length <= 3) seriesMatches = candidates.slice(0, 3);
-    const teamAId = teamKey(teamById.get(candidates[0].radiant_team_id)?.name?.trim()) === teamKey(liquipediaTeamA)
-      ? candidates[0].radiant_team_id
-      : candidates[0].dire_team_id;
-    const teamBId = teamAId === candidates[0].radiant_team_id
-      ? candidates[0].dire_team_id
-      : candidates[0].radiant_team_id;
-    const games = seriesMatches.slice(0, 5).map((match, index) => buildGame({
-      match,
-      details: detailsByMatchId.get(match.match_id),
-      gameNumber: index + 1,
-      teamAId,
-      teamBId,
-      vodUrl: liquipediaMatch.games[index]?.vods[0],
-      heroById,
-      heroByName,
-    }));
-    if (games.length > seriesBestOf) throw new Error(`Series ${seriesId} resolved to ${games.length} games for a Bo${seriesBestOf} series`);
-    while (games.length < seriesBestOf) games.push(concealedGame(games[Math.min(games.length, 2) - 1], games.length + 1));
+  const outputMatches = liquipedia.matches
+    .map((liquipediaMatch, originalIndex) => ({ liquipediaMatch, originalIndex }))
+    .sort((left, right) => {
+      if (!left.liquipediaMatch.scheduledAt || !right.liquipediaMatch.scheduledAt) return left.originalIndex - right.originalIndex;
+      return left.liquipediaMatch.scheduledAt.localeCompare(right.liquipediaMatch.scheduledAt) || left.originalIndex - right.originalIndex;
+    })
+    .map(({ liquipediaMatch }) => {
+      const [liquipediaTeamA, liquipediaTeamB] = liquipediaMatch.teams;
+      const seriesBestOf = supportedBestOf(liquipediaMatch.bestOf);
+      const candidates = (matchesByPair.get(pairKey(liquipediaTeamA, liquipediaTeamB)) ?? [])
+        .sort((left, right) => left.start_time - right.start_time);
+      if (!candidates.length) {
+        throw new Error(`Could not match Liquipedia series ${liquipediaTeamA} vs ${liquipediaTeamB} to OpenDota`);
+      }
+      const seriesId = candidates.find((match) => match.series_id != null)?.series_id ?? candidates[0].series_id;
+      let seriesMatches = candidates.filter((match) => match.series_id === seriesId || (match.series_id == null && candidates.length <= 3));
+      if (seriesMatches.length < 2 && candidates.length <= 3) seriesMatches = candidates.slice(0, 3);
+      const teamAId = teamKey(teamById.get(candidates[0].radiant_team_id)?.name?.trim()) === teamKey(liquipediaTeamA)
+        ? candidates[0].radiant_team_id
+        : candidates[0].dire_team_id;
+      const teamBId = teamAId === candidates[0].radiant_team_id
+        ? candidates[0].dire_team_id
+        : candidates[0].radiant_team_id;
+      const games = seriesMatches.slice(0, 5).map((match, index) => buildGame({
+        match,
+        details: detailsByMatchId.get(match.match_id),
+        gameNumber: index + 1,
+        teamAId,
+        teamBId,
+        vodUrl: liquipediaMatch.games[index]?.vods[0],
+        heroById,
+        heroByName,
+      }));
+      if (games.length > seriesBestOf) throw new Error(`Series ${seriesId} resolved to ${games.length} games for a Bo${seriesBestOf} series`);
+      while (games.length < seriesBestOf) games.push(concealedGame(games[Math.min(games.length, 2) - 1], games.length + 1));
 
-    const teamA = teamById.get(teamAId);
-    const teamB = teamById.get(teamBId);
-    return {
-      id: `${matchIdPrefix}-${seriesId}`,
-      openDotaSeriesId: seriesId,
-      bestOf: seriesBestOf,
-      matchPageUrl: liquipediaMatch.matchPage,
-      teamA: liquipediaTeamA,
-      teamB: liquipediaTeamB,
-      teamAId,
-      teamBId,
-      teamALogoUrl: teamA?.logo_url ?? null,
-      teamBLogoUrl: teamB?.logo_url ?? null,
-      casters: liquipediaMatch.casters,
-      games,
-    };
-  });
+      const teamA = teamById.get(teamAId);
+      const teamB = teamById.get(teamBId);
+      return {
+        id: `${matchIdPrefix}-${seriesId}`,
+        openDotaSeriesId: seriesId,
+        bestOf: seriesBestOf,
+        matchPageUrl: liquipediaMatch.matchPage,
+        teamA: liquipediaTeamA,
+        teamB: liquipediaTeamB,
+        teamAId,
+        teamBId,
+        teamALogoUrl: teamA?.logo_url ?? null,
+        teamBLogoUrl: teamB?.logo_url ?? null,
+        casters: liquipediaMatch.casters,
+        games,
+      };
+    });
 
   return {
     tournament,

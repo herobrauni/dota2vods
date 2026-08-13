@@ -141,6 +141,15 @@ describe("archive data helpers", () => {
     expect(screen.getAllByRole("article", { name: / versus / })).toHaveLength(12);
   });
 
+  it("keeps the EWC final-day order and preserves the fifth BO5 game", () => {
+    renderAt("/tournaments/esports-world-cup-2026/2026-07-19");
+    const series = screen.getAllByRole("article", { name: / versus / });
+    expect(series[0]).toHaveAccessibleName("Vici Gaming versus Team Yandex");
+    expect(series[1]).toHaveAccessibleName("BB Team versus PVISION");
+    expect(series[1].querySelectorAll(".game-card")).toHaveLength(5);
+    expect(series[1]).toHaveTextContent("GAME 5");
+  });
+
   it("keeps generated data spoiler-safe and has a safe hero fallback", () => {
     expect(archive.matches).toHaveLength(12);
     expect(archive.matches.flatMap((match) => match.games)).toHaveLength(36);
