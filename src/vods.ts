@@ -20,6 +20,7 @@ export type GameLink = {
 export type MatchRecord = {
   id: string;
   openDotaSeriesId: number;
+  bestOf: 2 | 3 | 5;
   matchPageUrl: string | null;
   teamA: string;
   teamB: string;

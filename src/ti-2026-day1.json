@@ -11,6 +11,7 @@
     {
       "id": "ti-2026-day1-1130024",
       "openDotaSeriesId": 1130024,
+      "bestOf": 3,
       "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5A_0001",
       "teamA": "Team Falcons",
       "teamB": "LGD Gaming",
@@ -184,6 +185,7 @@
     {
       "id": "ti-2026-day1-1130028",
       "openDotaSeriesId": 1130028,
+      "bestOf": 3,
       "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5A_0002",
       "teamA": "1w Team",
       "teamB": "Nigma Galaxy",
@@ -356,6 +358,7 @@
     {
       "id": "ti-2026-day1-1130032",
       "openDotaSeriesId": 1130032,
+      "bestOf": 3,
       "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5A_0003",
       "teamA": "BetBoom Team",
       "teamB": "OG",
@@ -528,6 +531,7 @@
     {
       "id": "ti-2026-day1-1130027",
       "openDotaSeriesId": 1130027,
+      "bestOf": 3,
       "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5A_0004",
       "teamA": "PARIVISION",
       "teamB": "Team Resilience",
@@ -701,6 +705,7 @@
     {
       "id": "ti-2026-day1-1130051",
       "openDotaSeriesId": 1130051,
+      "bestOf": 3,
       "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5A_0005",
       "teamA": "Team Spirit",
       "teamB": "Xtreme Gaming",
@@ -873,6 +878,7 @@
     {
       "id": "ti-2026-day1-1130045",
       "openDotaSeriesId": 1130045,
+      "bestOf": 3,
       "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5A_0006",
       "teamA": "Team Liquid",
       "teamB": "Vici Gaming",
@@ -1045,6 +1051,7 @@
     {
       "id": "ti-2026-day1-1130047",
       "openDotaSeriesId": 1130047,
+      "bestOf": 3,
       "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5A_0007",
       "teamA": "Aurora Gaming",
       "teamB": "GamerLegion",
@@ -1217,6 +1224,7 @@
     {
       "id": "ti-2026-day1-1130053",
       "openDotaSeriesId": 1130053,
+      "bestOf": 3,
       "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5A_0008",
       "teamA": "Team Yandex",
       "teamB": "L1GA TEAM",
@@ -1389,6 +1397,7 @@
     {
       "id": "ti-2026-day1-1130069",
       "openDotaSeriesId": 1130069,
+      "bestOf": 3,
       "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5B_0001",
       "teamA": "PARIVISION",
       "teamB": "Team Falcons",
@@ -1562,6 +1571,7 @@
     {
       "id": "ti-2026-day1-1130060",
       "openDotaSeriesId": 1130060,
+      "bestOf": 3,
       "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5B_0002",
       "teamA": "BetBoom Team",
       "teamB": "1w Team",
@@ -1735,6 +1745,7 @@
     {
       "id": "ti-2026-day1-1130063",
       "openDotaSeriesId": 1130063,
+      "bestOf": 3,
       "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5B_0005",
       "teamA": "LGD Gaming",
       "teamB": "Team Resilience",
@@ -1908,6 +1919,7 @@
     {
       "id": "ti-2026-day1-1130066",
       "openDotaSeriesId": 1130066,
+      "bestOf": 3,
       "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5B_0006",
       "teamA": "Nigma Galaxy",
       "teamB": "OG",

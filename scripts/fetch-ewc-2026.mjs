@@ -116,7 +116,7 @@ async function main() {
           sources: {
             opendota: `https://www.opendota.com/leagues/${LEAGUE_ID}`,
             liquipedia: "https://liquipedia.net/dota2/Esports_World_Cup/2026",
-            attribution: "Match, team, and hero metadata from OpenDota; caster and VOD metadata from Liquipedia.",
+            attribution: "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia.",
           },
         },
       });

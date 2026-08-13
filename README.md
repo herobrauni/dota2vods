@@ -3,12 +3,13 @@
 A static, spoiler-free Dota 2 VOD browser styled after the supplied Riki VODs
 design. The archive currently contains only The International 2026 and the
 Esports World Cup 2026. It uses OpenDota for match, team, and hero metadata and
-Liquipedia for caster and per-game VOD links.
+Liquipedia for series formats, casters, and per-game VOD links.
 
-The site deliberately omits scores, winners, durations, result-bearing titles,
-and series-length indicators. Each match renders its spoiler-safe game controls
-and can be marked watched as a whole or game by game. Watch progress is stored
-only in the visitor's browser under `localStorage`; it never leaves the device.
+The site deliberately omits scores, winners, durations, and result-bearing
+titles. Each match renders the correct spoiler-safe number of game controls for
+its best-of format and can be marked watched as a whole or game by game. Watch
+progress is stored only in the visitor's browser under `localStorage`; it never
+leaves the device.
 
 Use the `Tournaments` navigation item to open the tournament picker. On an
 event page, the progress ring counts completed matches from the selected date

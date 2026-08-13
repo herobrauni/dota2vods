@@ -122,13 +122,17 @@ function buildGame({ match, details, gameNumber, teamAId, teamBId, vodUrl, heroB
   };
 }
 
-function concealedGame(game) {
+function concealedGame(game, gameNumber) {
   return {
     ...game,
-    number: 3,
+    number: gameNumber,
     source: "concealed-fallback",
     matchId: undefined,
   };
+}
+
+function supportedBestOf(value) {
+  return [2, 3, 5].includes(value) ? value : 3;
 }
 
 export function toWebsiteData({ liquipedia, matches, teams, detailsByMatchId, heroes, config = {} }) {
@@ -156,6 +160,7 @@ export function toWebsiteData({ liquipedia, matches, teams, detailsByMatchId, he
 
   const outputMatches = liquipedia.matches.map((liquipediaMatch) => {
     const [liquipediaTeamA, liquipediaTeamB] = liquipediaMatch.teams;
+    const seriesBestOf = supportedBestOf(liquipediaMatch.bestOf);
     const candidates = (matchesByPair.get(pairKey(liquipediaTeamA, liquipediaTeamB)) ?? [])
       .sort((left, right) => left.start_time - right.start_time);
     if (!candidates.length) {
@@ -180,14 +185,15 @@ export function toWebsiteData({ liquipedia, matches, teams, detailsByMatchId, he
       heroById,
       heroByName,
     }));
-    if (games.length === 2) games.push(concealedGame(games[1]));
-    if (games.length < 3 || games.length > 5) throw new Error(`Series ${seriesId} did not resolve to a supported number of spoiler-safe controls`);
+    if (games.length > seriesBestOf) throw new Error(`Series ${seriesId} resolved to ${games.length} games for a Bo${seriesBestOf} series`);
+    while (games.length < seriesBestOf) games.push(concealedGame(games[Math.min(games.length, 2) - 1], games.length + 1));
 
     const teamA = teamById.get(teamAId);
     const teamB = teamById.get(teamBId);
     return {
       id: `${matchIdPrefix}-${seriesId}`,
       openDotaSeriesId: seriesId,
+      bestOf: seriesBestOf,
       matchPageUrl: liquipediaMatch.matchPage,
       teamA: liquipediaTeamA,
       teamB: liquipediaTeamB,
@@ -208,7 +214,7 @@ export function toWebsiteData({ liquipedia, matches, teams, detailsByMatchId, he
     sources: config.sources ?? {
       opendota: "https://www.opendota.com/leagues/19719",
       liquipedia: "https://liquipedia.net/dota2/The_International/2026/Group_Stage",
-      attribution: "Match, team, and hero metadata from OpenDota; caster and VOD metadata from Liquipedia.",
+      attribution: "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia.",
     },
     generatedAt: new Date().toISOString(),
   };

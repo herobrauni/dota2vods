@@ -96,7 +96,9 @@ describe("Riki VODs frontend", () => {
     fireEvent.click(dayButton);
     expect(screen.getByRole("button", { name: "Mark this day unwatched" })).toBeInTheDocument();
     expect(document.querySelector(".progress-meter")?.textContent).toContain("12/12");
-    expect(JSON.parse(window.localStorage.getItem("riki-vods-progress-v1") || "[]")).toHaveLength(36);
+    expect(JSON.parse(window.localStorage.getItem("riki-vods-progress-v1") || "[]")).toHaveLength(
+      archive.matches.flatMap((match) => match.games).filter((game) => game.vodUrl).length,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Mark this day unwatched" }));
     expect(screen.getByRole("button", { name: "Mark this day watched" })).toBeInTheDocument();
@@ -128,7 +130,9 @@ describe("archive data helpers", () => {
     expect(getMatchesForDate(matches, "ewc-2026", "2026-07-13")).toHaveLength(0);
     expect(archives.find((item) => item.date === "2026-07-14")?.stage).toContain("Survival");
     expect(archives.find((item) => item.date === "2026-07-16")?.stage).toContain("Playoffs");
-    expect(getMatchesForDate(matches, "ewc-2026", "2026-07-19").some((match) => match.games.length === 4)).toBe(true);
+    const ewcFinalDay = getMatchesForDate(matches, "ewc-2026", "2026-07-19");
+    expect(ewcFinalDay.some((match) => match.bestOf === 5 && match.games.length === 5)).toBe(true);
+    expect(ewcFinalDay.some((match) => match.bestOf === 3 && match.games.length === 3)).toBe(true);
   });
 
   it("renders an EWC dated archive with all twelve day-one matches", () => {

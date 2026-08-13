@@ -83,9 +83,10 @@ the missing source instead of adding a video-parsing fallback.
 
 ## Data and spoiler-safety checklist
 
-Every generated game must have ten hero picks, and every match must render
-three game controls. A missing third OpenDota game is represented by the
-existing concealed fallback behavior; it must not expose a score or winner.
+Every generated game must have ten hero picks, and every match must render the
+number of controls specified by its best-of format. A missing game is
+represented by the existing concealed fallback behavior; it must not expose a
+score or winner.
 
 Before committing a new snapshot, check its shape and forbidden fields:
 

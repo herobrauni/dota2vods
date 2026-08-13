@@ -124,6 +124,14 @@ function casterNames(popup) {
   return unique([...comment.querySelectorAll("a")].map((link) => cleanText(link.textContent)));
 }
 
+export function extractBestOf(popup) {
+  const formatText = popup.querySelector(".match-info-header-scoreholder-lower")?.textContent
+    ?? popup.textContent.match(/\(Bo\s*[1-5]\)/i)?.[0]
+    ?? "";
+  const match = cleanText(formatText).match(/Bo\s*([1-5])/i);
+  return match ? Number(match[1]) : null;
+}
+
 function teamNames(match) {
   const matchlistTeams = [...match.querySelectorAll(".brkts-matchlist-opponent[aria-label]")]
     .map((element) => cleanText(element.getAttribute("aria-label")));
@@ -177,14 +185,16 @@ function parseBracketStage(root, stage) {
       stage,
       matchPage: matchPageUrl(popup),
       casters: casterNames(popup),
+      bestOf: extractBestOf(popup),
       games: extractGames(popup),
     };
   }).filter(Boolean);
 }
 
 /**
- * Extracts only non-result metadata from the server-expanded Day 1 page.
- * Scores, winners, series length, durations, and result labels are omitted.
+ * Extracts non-result metadata from the server-expanded Day 1 page.
+ * Scores, winners, durations, and result labels are omitted; the best-of
+ * format is retained so the archive can render every possible game.
  */
 export function parseDayOnePage({ html, page = PAGE, date = DAY_ONE_DATE, revisionId = null }) {
   const document = new JSDOM(html).window.document;
@@ -198,9 +208,10 @@ export function parseDayOnePage({ html, page = PAGE, date = DAY_ONE_DATE, revisi
     matches.push({
         teams,
         scheduledText: date,
-      matchPage: matchPageUrl(popup),
-      casters: casterNames(popup),
-      games: extractGames(popup),
+        matchPage: matchPageUrl(popup),
+        casters: casterNames(popup),
+        bestOf: extractBestOf(popup),
+        games: extractGames(popup),
     });
   }
 
