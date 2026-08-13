@@ -1,6 +1,8 @@
 # Dota VODs
 
-A local, spoiler-free Dota 2 VOD index. It links directly to the start of each game on the official [`@dota2`](https://www.youtube.com/@dota2) YouTube channel and always renders three game choices for a best-of-three.
+A local, spoiler-free Dota 2 VOD index. It links directly to the start of each game on official tournament YouTube channels and always renders three game choices for a best-of-three.
+
+The archive includes the 26 English Dota 2 broadcasts published for the 2026 Esports World Cup on the official [`@ewc`](https://www.youtube.com/@ewc/streams) channel. EWC entries use OpenDota league `19785` for series, match, team, and draft metadata; each broadcast has separate draft and gameplay timestamps.
 
 ## Archive navigation
 

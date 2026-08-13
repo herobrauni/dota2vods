@@ -5,6 +5,7 @@ import { heroIconUrl, teamLogoUrl, vods, youtubeUrl, type Vod } from "./vods";
 
 const tournamentUrl = "/tournaments/the-international-2026";
 const dayOneUrl = `${tournamentUrl}/2026-08-13`;
+const tiVods = vods.filter((vod) => vod.tournamentId === "ti-2026");
 
 function renderAt(pathname: string, allVods: Vod[] = vods) {
   window.history.replaceState({}, "", pathname);
@@ -48,7 +49,7 @@ describe("tournament and date navigation", () => {
 
   it("strictly selects one date even when a later day exists", () => {
     const nextDay: Vod = {
-      ...vods[0],
+      ...tiVods[0],
       id: "future-broadcast",
       date: "2026-08-14",
       stage: "Group Stage · Day 2",
@@ -69,8 +70,8 @@ describe("tournament and date navigation", () => {
   });
 
   it("derives sorted tournament dates and filters by tournament and exact date", () => {
-    const nextDay = { ...vods[0], id: "next", date: "2026-08-14" };
-    const otherTournament = { ...vods[0], id: "other", tournamentId: "other-event" };
+    const nextDay = { ...tiVods[0], id: "next", date: "2026-08-14" };
+    const otherTournament = { ...tiVods[0], id: "other", tournamentId: "other-event" };
     const archive = [nextDay, otherTournament, ...vods];
 
     expect(getTournamentDates(archive, "ti-2026")).toEqual(["2026-08-13", "2026-08-14"]);
@@ -108,7 +109,7 @@ describe("spoiler-free VOD date page", () => {
 
   it("always renders draft and game-start links for all three games", () => {
     renderAt(dayOneUrl);
-    for (const vod of vods) for (const series of vod.series) {
+    for (const vod of tiVods) for (const series of vod.series) {
       const label = `${series.teamA} versus ${series.teamB} games`;
       const region = screen.getByLabelText(label);
       expect(region.querySelectorAll(".game-panel")).toHaveLength(3);
@@ -125,8 +126,8 @@ describe("spoiler-free VOD date page", () => {
 
   it("only contains English broadcasts and complete game metadata", () => {
     expect(vods.every((vod) => vod.language === "English")).toBe(true);
-    expect(vods.every((vod) => vod.tournamentId === "ti-2026")).toBe(true);
-    expect(vods.flatMap((vod) => vod.series).flatMap((series) => series.games)).toHaveLength(18);
+    expect(new Set(vods.map((vod) => vod.tournamentId)).size).toBe(2);
+    expect(vods.flatMap((vod) => vod.series).flatMap((series) => series.games)).toHaveLength(252);
     expect(vods.flatMap((vod) => vod.series).flatMap((series) => series.games).every((game) => game.startSeconds > 0)).toBe(true);
     expect(vods.flatMap((vod) => vod.series).flatMap((series) => series.games).every((game) => game.draftStartSeconds < game.startSeconds)).toBe(true);
     expect(vods.flatMap((vod) => vod.series).flatMap((series) => series.games).every((game) => game.heroes.teamA.length === 5 && game.heroes.teamB.length === 5)).toBe(true);

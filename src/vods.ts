@@ -21,14 +21,32 @@ export type Series = {
 };
 
 const teamLogos: Record<number, string> = {
+  55: "https://steamcdn-a.akamaihd.net/apps/dota2/images/team_logos/55.png",
   2163: "https://steamcdn-a.akamaihd.net/apps/dota2/images/team_logos/2163.png",
   726228: "https://steamcdn-a.akamaihd.net/apps/dota2/images/team_logos/726228.png",
   2586976: "https://steamcdn-a.akamaihd.net/apps/dota2/images/team_logos/2586976.png",
   5017210: "https://cdn.steamusercontent.com/ugc/14326265454983833183/734A1D8A0938380A48221CDAE1AACB0C5C0AB585/",
   8255888: "https://cdn.steamusercontent.com/ugc/9995426432403529725/51E13136D4CCC8C7D8062861541A1D13B8ED87E0/",
+  7119388: "https://cdn.steamusercontent.com/ugc/1839179120711951766/CD7E0885CB527334205CC7885E9C101B7BC17702/",
+  8261500: "https://cdn.steamusercontent.com/ugc/2402194226059610590/E3CF4B6C4B2CFB974A9B415141E4A37317AD4D80/",
+  9247354: "https://cdn.steamusercontent.com/ugc/2314350571781870059/2B5C9FE9BA0A2DC303A13261444532AA08352843/",
+  9256405: "https://cdn.steamusercontent.com/ugc/11124972020884745329/AB3238A17EE9950F7532A26B1EAAFCF2086FB37A/",
+  9338413: "https://cdn.steamusercontent.com/ugc/14936784213521439739/3EA33A8516BDE538B7963F044CD1B7AB4B0BB60D/",
+  9467224: "https://cdn.steamusercontent.com/ugc/13052583756685508/22B0338D7E09FB2F021E5DB5BBEFFD170D5E5E1A/",
+  9691969: "https://cdn.steamusercontent.com/ugc/16578975333650734744/040492179D9E0E83DA0559848D88CFC17A1EFCAC/",
   9572001: "https://cdn.steamusercontent.com/ugc/10380389074903512947/5D074799695A862D17D4205285315FE20399B28D/",
   9823272: "https://cdn.steamusercontent.com/ugc/12970505637628494427/B04C3358F4E815ADFC2F8B1B8BE3AB0CE75C8881/",
+  9824702: "https://cdn.steamusercontent.com/ugc/11751543457229798134/1569CC553CB72963C8EC4C3F807EE50DA925BDC2/",
+  9828897: "https://cdn.steamusercontent.com/ugc/16170413258693955016/5ABDC787F5CF4BBDD603F15933D9F5B0F8EB0D8A/",
+  9895247: "https://cdn.steamusercontent.com/ugc/11845515088670662060/69AF28B666A859915784A1FF3C77F23E29057C3F/",
+  9895392: "https://cdn.steamusercontent.com/ugc/13061694558372404982/7AC363D410AC6F2F4B016EE7D73B7C266D0113F9/",
+  9964962: "https://cdn.steamusercontent.com/ugc/13245379764580870318/1048428BEFAC87EC1C64E15706A4758A173B5BFB/",
+  10019843: "https://cdn.steamusercontent.com/ugc/9964979241844276783/64DDB27F8A50FEA6869CFD8392ED29CE674E26C1/",
   10136357: "https://cdn.steamusercontent.com/ugc/16959999218725724364/1D334B91A52606CA3E0027832D6F646E2A094391/",
+  10150538: "https://cdn.steamusercontent.com/ugc/10055782735581672481/2B2BCEA9CC05286D7164E4548A2EB64CDBC77F31/",
+  10182299: "https://cdn.steamusercontent.com/ugc/12840375036858410683/946851F493233AE9BF459B56784400C08A069893/",
+  10182309: "https://cdn.steamusercontent.com/ugc/11500438161201190376/E39F14A796FD1B573A0DFBF774B134837FC1D13A/",
+  10182357: "https://cdn.steamusercontent.com/ugc/10678669599334676082/E48827F4A163D4D02F817EA3C32166D5F1D5FC98/",
   10149530: "https://cdn.steamusercontent.com/ugc/14844266645370842778/47230D9640A722EAF06548C2EEB813ED4296AE3F/",
   10150413: "https://cdn.steamusercontent.com/ugc/16903873521422862552/02513782FE03E7A567B8B8955A0DEF415EF2B624/",
 };
@@ -58,6 +76,13 @@ export type Tournament = {
 };
 
 export const tournaments: Tournament[] = [
+  {
+    id: "ewc-2026",
+    slug: "esports-world-cup-2026",
+    name: "Esports World Cup 2026",
+    shortName: "EWC 2026",
+    year: 2026,
+  },
   {
     id: "ti-2026",
     slug: "the-international-2026",
@@ -100,6 +125,7 @@ const concealedThird = (
 });
 
 export const vods: Vod[] = [
+  ...ewc26Vods,
   {
     id: "giB1GPD9YBs",
     tournamentId: "ti-2026",
@@ -226,3 +252,4 @@ export function heroIconUrl(heroName: string) {
   const slug = heroAssetExceptions[heroName] ?? heroName.toLowerCase().replace(/\s+/g, "_");
   return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/${slug}.png`;
 }
+import { ewc26Vods } from "./ewc26";

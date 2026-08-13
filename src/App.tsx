@@ -182,7 +182,7 @@ function BroadcastCard({ vod, query }: { vod: Vod; query: string }) {
         <div className="broadcast-art" style={{ backgroundImage: `url(${vod.thumbnail})` }}>
           <div className="broadcast-art-overlay" />
           <span className="stream-pill">ENGLISH · STREAM {streamCode}</span>
-          <div className="broadcast-title"><span>THE</span><strong>INTERNATIONAL</strong><small>GROUP STAGE</small></div>
+          <div className="broadcast-title"><span>OFFICIAL</span><strong>{vod.event}</strong><small>{vod.stage}</small></div>
         </div>
         <div className="series-list">
           {filteredSeries.map((series, index) => (
