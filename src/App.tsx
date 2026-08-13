@@ -141,9 +141,9 @@ function SearchPanel({ search, searchType, onSearch, onSearchType }: { search: s
 function GameCard({ match, game, watched, expanded, onToggleWatched, onTogglePicks }: { match: MatchRecord; game: GameLink; watched: boolean; expanded: boolean; onToggleWatched: () => void; onTogglePicks: () => void }) {
   return <div className={`game-card ${watched ? "watched" : ""}`}>
     <div className="game-top"><span>GAME {game.number}</span>{watched && <span className="check">✓ WATCHED</span>}</div>
-    <div className="game-visual"><span className="fog-line" /><span className="play-glyph">▶</span><span className="fog-line" /></div>
+    {game.vodUrl ? <a className="game-visual game-visual-link" href={game.vodUrl} target="_blank" rel="noreferrer" aria-label={`Watch VOD for Game ${game.number}: ${match.teamA} versus ${match.teamB}`}><span className="fog-line" /><span className="play-glyph">▶</span><span className="fog-line" /></a> : <div className="game-visual"><span className="fog-line" /><span className="play-glyph">▶</span><span className="fog-line" /></div>}
     <div className="game-actions">
-      {game.vodUrl ? <a href={game.vodUrl} target="_blank" rel="noreferrer">Watch VOD ↗</a> : <span className="not-played">VOD unavailable</span>}
+      {!game.vodUrl && <span className="not-played">VOD unavailable</span>}
       {game.vodUrl && <button type="button" className="watch-toggle" onClick={onToggleWatched} aria-label={`${watched ? "Mark unwatched" : "Mark watched"} Game ${game.number} of ${match.teamA} versus ${match.teamB}`}>{watched ? "Undo" : "Mark watched"}</button>}
     </div>
     <div className="picks-wrap">

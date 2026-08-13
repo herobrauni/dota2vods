@@ -40,7 +40,10 @@ describe("Riki VODs frontend", () => {
     expect(screen.getByRole("heading", { name: "Thursday, August 13", level: 2 })).toBeInTheDocument();
     expect(screen.getAllByRole("article", { name: / versus / })).toHaveLength(12);
     expect(document.querySelectorAll(".game-card")).toHaveLength(36);
-    expect(screen.getAllByRole("link", { name: "Watch VOD ↗" }).length).toBeGreaterThan(20);
+    const vodLinks = screen.getAllByRole("link", { name: /Watch VOD for Game/ });
+    expect(vodLinks.length).toBeGreaterThan(20);
+    expect(vodLinks[0]).toHaveClass("game-visual-link");
+    expect(screen.queryByText("Watch VOD ↗")).not.toBeInTheDocument();
   });
 
   it("searches caster, team, and hero metadata within the selected day", () => {
