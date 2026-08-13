@@ -10,3 +10,4 @@ dist/
 .wrangler/
 analysis/*.private.json
 *.tsbuildinfo
+riki-vods-self-host.zip
