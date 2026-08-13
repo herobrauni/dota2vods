@@ -64,6 +64,9 @@ export type Vod = {
   date: string;
   language: "English";
   thumbnail: string;
+  // Commentary talent for the broadcast. Casters are public broadcast metadata,
+  // not a result, so they are safe to show under the spoiler policy.
+  casters: string[];
   series: Series[];
 };
 
@@ -135,6 +138,7 @@ export const vods: Vod[] = [
     date: "2026-08-13",
     language: "English",
     thumbnail: "https://i.ytimg.com/vi/giB1GPD9YBs/maxresdefault.jpg",
+    casters: ["ODPIXEL", "Capitalist"],
     series: [
       {
         id: "team-resilience-vs-team-vision",
@@ -186,6 +190,7 @@ export const vods: Vod[] = [
     date: "2026-08-13",
     language: "English",
     thumbnail: "https://i.ytimg.com/vi/VaZpuoMhjmg/maxresdefault.jpg",
+    casters: ["Blitz", "Kyle"],
     series: [
       {
         id: "nigma-galaxy-vs-iron-wing",
