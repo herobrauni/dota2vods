@@ -33,6 +33,11 @@ The generator caches API responses below `.cache/ti-2026/` and writes the
 spoiler-safe static snapshot to `src/ti-2026-day1.json`. Set `TI_REFRESH=1` to
 refresh it. It does not download, transcribe, inspect, or OCR any video.
 
+To extend the archive with another day or tournament, follow the
+[archive data guide](docs/ADDING-ARCHIVE-DATA.md). The current implementation
+is intentionally single-snapshot, so the frontend needs to be generalized
+before adding a second snapshot.
+
 Liquipedia requests use the required project-specific `User-Agent` with contact
 information, gzip negotiation, a reused serialized client, a minimum two-second
 HTTP interval, and a minimum thirty-second interval between `action=parse`
