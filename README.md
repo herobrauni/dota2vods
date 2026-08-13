@@ -63,7 +63,7 @@ Requirements: `ffmpeg`, Node 22+, Python 3.10+, and the Python packages below.
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+.venv/bin/pip install -r scripts/requirements.txt
 npm run ingest -- 'https://www.youtube.com/watch?v=VaZpuoMhjmg'
 ```
 
