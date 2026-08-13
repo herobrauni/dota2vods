@@ -111,6 +111,12 @@ function matchesForSearch(match: MatchRecord, query: string, searchType: SearchT
   return matchSearchable(match).includes(normalized);
 }
 
+function gameHasHeroSearchMatch(game: GameLink, query: string, searchType: SearchType) {
+  if (!query.trim() || searchType === "teams" || searchType === "casters") return false;
+  const normalized = query.trim().toLowerCase();
+  return [...game.heroes.teamA, ...game.heroes.teamB].some((hero) => hero.name.toLowerCase().includes(normalized));
+}
+
 function initials(team: string) {
   return team.split(/\s+/).filter(Boolean).map((part) => part[0]).join("").slice(0, 3).toUpperCase();
 }
@@ -138,8 +144,8 @@ function SearchPanel({ search, searchType, onSearch, onSearchType }: { search: s
   </div>;
 }
 
-function GameCard({ match, game, watched, expanded, onToggleWatched, onTogglePicks }: { match: MatchRecord; game: GameLink; watched: boolean; expanded: boolean; onToggleWatched: () => void; onTogglePicks: () => void }) {
-  return <div className={`game-card ${watched ? "watched" : ""}`}>
+function GameCard({ match, game, watched, expanded, heroSearchMatch, onToggleWatched, onTogglePicks }: { match: MatchRecord; game: GameLink; watched: boolean; expanded: boolean; heroSearchMatch: boolean; onToggleWatched: () => void; onTogglePicks: () => void }) {
+  return <div className={`game-card ${watched ? "watched" : ""} ${heroSearchMatch ? "hero-search-match" : ""}`}>
     <div className="game-top"><span>GAME {game.number}</span>{watched && <span className="check">✓ WATCHED</span>}</div>
     {game.vodUrl ? <a className="game-visual game-visual-link" href={game.vodUrl} target="_blank" rel="noreferrer" aria-label={`Watch VOD for Game ${game.number}: ${match.teamA} versus ${match.teamB}`}><span className="fog-line" /><span className="play-glyph">▶</span><span className="fog-line" /></a> : <div className="game-visual"><span className="fog-line" /><span className="play-glyph">▶</span><span className="fog-line" /></div>}
     <div className="game-actions">
@@ -157,7 +163,7 @@ function GameCard({ match, game, watched, expanded, onToggleWatched, onTogglePic
   </div>;
 }
 
-function MatchCard({ match, index, watched, expandedPicks, onToggleWatched, onTogglePicks, onCatchUp }: { match: MatchRecord; index: number; watched: Set<string>; expandedPicks: Set<string>; onToggleWatched: (gameId: string) => void; onTogglePicks: (gameId: string) => void; onCatchUp: () => void }) {
+function MatchCard({ match, index, watched, expandedPicks, search, searchType, onToggleWatched, onTogglePicks, onCatchUp }: { match: MatchRecord; index: number; watched: Set<string>; expandedPicks: Set<string>; search: string; searchType: SearchType; onToggleWatched: (gameId: string) => void; onTogglePicks: (gameId: string) => void; onCatchUp: () => void }) {
   const playableGames = match.games.filter((game) => game.vodUrl);
   const watchedCount = playableGames.filter((game) => watched.has(gameKey(match, game))).length;
   const complete = playableGames.length > 0 && watchedCount === playableGames.length;
@@ -165,7 +171,7 @@ function MatchCard({ match, index, watched, expandedPicks, onToggleWatched, onTo
     <div className="series-meta"><div><span className="series-time">{String(index + 1).padStart(2, "0")}</span><span className="series-stage">{match.casters.length ? `On the call · ${match.casters.join(" + ")}` : "Caster information unavailable"}</span></div><button type="button" onClick={onCatchUp}>{complete ? "Match watched" : "Mark match watched"}</button></div>
     <div className="matchup"><div className="team"><TeamMark name={match.teamA} logoUrl={match.teamALogoUrl} /><strong>{match.teamA}</strong></div><span className="versus">VS</span><div className="team team-right"><strong>{match.teamB}</strong><TeamMark name={match.teamB} logoUrl={match.teamBLogoUrl} alt /></div></div>
     <div className="game-grid">
-      {match.games.map((game) => <GameCard key={game.number} match={match} game={game} watched={watched.has(gameKey(match, game))} expanded={expandedPicks.has(gameKey(match, game))} onToggleWatched={() => onToggleWatched(gameKey(match, game))} onTogglePicks={() => onTogglePicks(gameKey(match, game))} />)}
+      {match.games.map((game) => <GameCard key={game.number} match={match} game={game} watched={watched.has(gameKey(match, game))} expanded={expandedPicks.has(gameKey(match, game))} heroSearchMatch={gameHasHeroSearchMatch(game, search, searchType)} onToggleWatched={() => onToggleWatched(gameKey(match, game))} onTogglePicks={() => onTogglePicks(gameKey(match, game))} />)}
     </div>
     <div className="series-footer"><span>{watchedCount}/{playableGames.length} games marked watched</span><span>Progress stays on this device</span></div>
   </article>;
@@ -194,7 +200,7 @@ function TournamentCard({ tournament, allMatches }: { tournament: Tournament; al
 function TournamentSelectionPage({ allMatches }: { allMatches: MatchRecord[] }) {
   return <main className="tournament-picker-page">
     <section className="hero-section tournament-picker-hero"><div className="hero-copy"><p className="kicker"><span className="live-dot" /> Spoiler protection is on</p><h1>Choose your tournament</h1><p className="hero-lede">Pick an event to browse its available dates. Matchups stay on the event page until you choose a day.</p></div></section>
-    <section className="more-section tournament-picker-section"><div className="day-title"><div><p className="section-label">Browse archive</p><h2>Current tournaments</h2></div></div><div className="tournament-grid">{tournaments.map((tournament) => <TournamentCard key={tournament.id} tournament={tournament} allMatches={allMatches} />)}</div></section>
+    <section className="more-section tournament-picker-section"><div className="tournament-grid">{tournaments.map((tournament) => <TournamentCard key={tournament.id} tournament={tournament} allMatches={allMatches} />)}</div></section>
   </main>;
 }
 
@@ -261,8 +267,9 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
 
   function catchUpToDate() {
     const keys = dateMatches.flatMap((match) => match.games.filter((game) => game.vodUrl).map((game) => gameKey(match, game)));
-    setWatched((current) => Array.from(new Set([...current, ...keys])));
-    showNotice("Day progress saved on this device");
+    const complete = keys.length > 0 && keys.every((key) => watchedSet.has(key));
+    setWatched((current) => complete ? current.filter((key) => !keys.includes(key)) : Array.from(new Set([...current, ...keys])));
+    showNotice(complete ? "Day marked unwatched" : "Day progress saved on this device");
   }
 
   function resetProgress() {
@@ -280,6 +287,8 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
   const currentDayMatches = dateMatches.filter((match) => match.games.some((game) => game.vodUrl));
   const watchedCurrentDayMatches = currentDayMatches.filter((match) => matchIsWatched(match, watchedSet)).length;
   const progressTotal = currentDayMatches.length;
+  const dayGameKeys = dateMatches.flatMap((match) => match.games.filter((game) => game.vodUrl).map((game) => gameKey(match, game)));
+  const dayIsWatched = dayGameKeys.length > 0 && dayGameKeys.every((key) => watchedSet.has(key));
   const isTournamentPicker = pathname === "/tournaments";
 
   return <div className={`site-shell ${search ? "searching" : ""}`}>
@@ -303,9 +312,9 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
 
       <section className="day-section" id="continue">
         <div className="day-title"><div><p className="section-label">{selectedArchive?.stage ?? "Archive"}</p><h2>{selectedDate ? formatDate(selectedDate, { weekday: "long", month: "long", day: "numeric" }) : "Archive"}</h2></div><div className="legend"><span>✓ Spoiler protected</span><span>Progress stays on this device</span></div></div>
-        <div className="day-actions"><p className="result-count">{search ? `${filteredMatches.length} safe result${filteredMatches.length === 1 ? "" : "s"} for “${search}”` : `${dateMatches.length} matches · search covers teams, heroes, and casters`}</p><button type="button" onClick={catchUpToDate}>Mark this day watched</button></div>
+        <div className="day-actions"><p className="result-count">{search ? `${filteredMatches.length} safe result${filteredMatches.length === 1 ? "" : "s"} for “${search}”` : `${dateMatches.length} matches · search covers teams, heroes, and casters`}</p><button type="button" onClick={catchUpToDate}>{dayIsWatched ? "Mark this day unwatched" : "Mark this day watched"}</button></div>
         <div className="series-list">
-          {filteredMatches.map((match, index) => <MatchCard key={match.id} match={match} index={index} watched={watchedSet} expandedPicks={new Set(expandedPicks)} onToggleWatched={toggleWatched} onTogglePicks={(gameId) => setExpandedPicks((current) => current.includes(gameId) ? current.filter((id) => id !== gameId) : [...current, gameId])} onCatchUp={() => markMatch(match)} />)}
+          {filteredMatches.map((match, index) => <MatchCard key={match.id} match={match} index={index} watched={watchedSet} expandedPicks={new Set(expandedPicks)} search={search} searchType={searchType} onToggleWatched={toggleWatched} onTogglePicks={(gameId) => setExpandedPicks((current) => current.includes(gameId) ? current.filter((id) => id !== gameId) : [...current, gameId])} onCatchUp={() => markMatch(match)} />)}
           {!filteredMatches.length && <p className="empty-state">No teams, heroes, or casters match “{search}”.</p>}
         </div>
       </section>

@@ -96,6 +96,7 @@ main { max-width:1440px; margin:0 auto; }
 .game-card { min-width:0; border-right:1px solid var(--line); padding:15px; background:rgba(255,255,255,.01); }
 .game-card:last-child { border-right:0; }
 .game-card.watched { background:rgba(154,120,255,.055); }
+.game-card.hero-search-match { border:2px solid var(--acid); box-shadow:0 0 18px rgba(157,255,154,.12); padding:14px; }
 .game-top { display:flex; justify-content:space-between; font-family:var(--font-geist-mono); font-size:9px; letter-spacing:.1em; color:#8a8d88; }
 .check { color:var(--acid); }
 .game-visual { margin:12px 0; height:78px; display:flex; align-items:center; justify-content:center; gap:14px; background:radial-gradient(circle at center,rgba(154,120,255,.09),transparent 35%),repeating-linear-gradient(135deg,#17141f,#17141f 4px,#121018 4px,#121018 8px); }

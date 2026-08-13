@@ -59,6 +59,18 @@ describe("Riki VODs frontend", () => {
     expect(screen.getByText(/safe result/)).toBeInTheDocument();
   });
 
+  it("highlights only the games containing a searched hero", () => {
+    renderAt(tiDayOneUrl);
+    const hero = archive.matches[0].games[0].heroes.teamA[0].name;
+    const expectedHighlightedGames = archive.matches.flatMap((match) => match.games).filter((game) => (
+      [...game.heroes.teamA, ...game.heroes.teamB].some((pick) => pick.name.toLowerCase().includes(hero.toLowerCase()))
+    )).length;
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Search VODs" }), { target: { value: hero } });
+
+    expect(document.querySelectorAll(".game-card.hero-search-match")).toHaveLength(expectedHighlightedGames);
+  });
+
   it("marks an entire match watched and persists that progress locally", () => {
     renderAt(tiDayOneUrl);
     const match = archive.matches[0];
@@ -75,6 +87,21 @@ describe("Riki VODs frontend", () => {
     fireEvent.click(screen.getByRole("button", { name: "Match watched" }));
     expect(screen.getAllByRole("button", { name: "Mark match watched" })).toHaveLength(12);
     expect(document.querySelector(".progress-meter")?.textContent).toContain("0/12");
+  });
+
+  it("toggles the selected day watched and unwatched", () => {
+    renderAt(tiDayOneUrl);
+    const dayButton = screen.getByRole("button", { name: "Mark this day watched" });
+
+    fireEvent.click(dayButton);
+    expect(screen.getByRole("button", { name: "Mark this day unwatched" })).toBeInTheDocument();
+    expect(document.querySelector(".progress-meter")?.textContent).toContain("12/12");
+    expect(JSON.parse(window.localStorage.getItem("riki-vods-progress-v1") || "[]")).toHaveLength(36);
+
+    fireEvent.click(screen.getByRole("button", { name: "Mark this day unwatched" }));
+    expect(screen.getByRole("button", { name: "Mark this day watched" })).toBeInTheDocument();
+    expect(document.querySelector(".progress-meter")?.textContent).toContain("0/12");
+    expect(JSON.parse(window.localStorage.getItem("riki-vods-progress-v1") || "[]")).toHaveLength(0);
   });
 
   it("opens hero picks and exposes source attribution", () => {
