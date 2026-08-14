@@ -947,7 +947,7 @@
           "number": 2,
           "matchId": 8944612322,
           "source": "opendota",
-          "vodUrl": "https://youtu.be/cJCHDQcTNFU",
+          "vodUrl": "https://youtu.be/gat-ATGfk6Q",
           "heroes": {
             "teamA": [
               {
@@ -998,7 +998,7 @@
         {
           "number": 3,
           "source": "concealed-fallback",
-          "vodUrl": "https://youtu.be/cJCHDQcTNFU",
+          "vodUrl": "https://youtu.be/gat-ATGfk6Q",
           "heroes": {
             "teamA": [
               {
@@ -1744,5 +1744,5 @@
     "liquipedia": "https://liquipedia.net/dota2/The_International/2026/Group_Stage",
     "attribution": "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia."
   },
-  "generatedAt": "2026-08-14T08:47:34.153Z"
+  "generatedAt": "2026-08-14T08:49:57.918Z"
 }
