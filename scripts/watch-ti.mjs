@@ -212,11 +212,10 @@ async function main() {
     }
   }
 
-  await mkdir(STATE_DIR, { recursive: true });
-  await writeFile(FINGERPRINT_FILE, `${fingerprint}\n`);
-
   const gitChanges = run("git", ["status", "--porcelain"]).trim();
   if (!gitChanges) {
+    await mkdir(STATE_DIR, { recursive: true });
+    await writeFile(FINGERPRINT_FILE, `${fingerprint}\n`);
     return; // silent: fingerprint moved (e.g. VODs for an unpublishable day) but nothing to publish
   }
 
@@ -242,6 +241,8 @@ async function main() {
   run("git", ["add", "src/ti-2026-day*.json"]);
   run("git", ["commit", "-m", message]);
   run("git", ["push", "origin", "main"]);
+  await mkdir(STATE_DIR, { recursive: true });
+  await writeFile(FINGERPRINT_FILE, `${fingerprint}\n`);
   report([`🏒 TI 2026 published to riki.vods:\n${lines.join("\n")}\nPushed — Cloudflare Pages deploy on its way.`]);
 }
 
