@@ -1668,7 +1668,7 @@
       "id": "ti-2026-day2-1130328",
       "openDotaSeriesId": 1130328,
       "bestOf": 3,
-      "matchPageUrl": "https://liquipedia.net/dota2/index.php?title=Match:ID_mfiWqjJT5C_0005&action=edit&redlink=1",
+      "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5C_0005",
       "teamA": "Aurora Gaming",
       "teamB": "Team Yandex",
       "teamAId": 9467224,
@@ -1788,7 +1788,7 @@
           "number": 3,
           "matchId": 8945052416,
           "source": "opendota",
-          "vodUrl": null,
+          "vodUrl": "https://youtu.be/srhPp2VsPLU",
           "heroes": {
             "teamA": [
               {
@@ -1844,5 +1844,5 @@
     "liquipedia": "https://liquipedia.net/dota2/The_International/2026/Group_Stage",
     "attribution": "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia."
   },
-  "generatedAt": "2026-08-14T13:53:34.796Z"
+  "generatedAt": "2026-08-14T15:55:33.955Z"
 }
