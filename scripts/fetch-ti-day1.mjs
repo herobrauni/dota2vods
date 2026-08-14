@@ -246,7 +246,7 @@ export function toWebsiteData({ liquipedia, matches, teams, detailsByMatchId, he
 export function assertSpoilerSafe(data) {
   const serialized = JSON.stringify(data);
   for (const forbidden of ["radiant_win", "dire_score", "radiant_score", "winner", "duration", "score"]) {
-    if (serialized.includes(`\"${forbidden}\"`)) throw new Error(`Spoiler-bearing field leaked into generated data: ${forbidden}`);
+    if (serialized.includes(`"${forbidden}"`)) throw new Error(`Spoiler-bearing field leaked into generated data: ${forbidden}`);
   }
 }
 

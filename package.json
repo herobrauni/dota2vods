@@ -8,16 +8,17 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
+    "lint": "oxlint",
     "data:ti-day1": "node scripts/fetch-ti-day1.mjs",
     "data:ti-day2": "node scripts/fetch-ti-day2.mjs",
     "data:ewc-2026": "node scripts/fetch-ewc-2026.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^6.0.5",
-    "vite": "^8.2.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vite": "^8.2.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",
@@ -26,6 +27,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "jsdom": "^30.0.1",
+    "oxlint": "^1.78.0",
     "vitest": "^4.1.10"
   }
 }

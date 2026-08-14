@@ -25,9 +25,14 @@ npm run dev
 Checks:
 
 ```bash
+npm run lint
 npm test
 npm run build
 ```
+
+Linting uses [oxlint](https://oxlint.rs) — the TypeScript 7 native toolchain no
+longer exposes the JS API that eslint-plugin tooling requires. The Vite
+react-ts template ships oxlint for the same reason.
 
 The Vite output in `dist/` is ready for Cloudflare Pages. The repository's
 GitHub Actions workflow runs the same test and build checks on every push to

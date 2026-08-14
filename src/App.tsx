@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import {
   archive,
   archives,
@@ -15,10 +15,6 @@ type SearchType = "all" | "teams" | "heroes" | "casters";
 
 const progressStorageKey = "riki-vods-progress-v1";
 const preferredTournamentId = "ti-2026";
-
-function PlayIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.1 5.25a1 1 0 0 1 1.5-.86l9.2 6.76a1.06 1.06 0 0 1 0 1.7l-9.2 6.76a1 1 0 0 1-1.5-.86V5.25Z" /></svg>;
-}
 
 function cleanPathname(pathname: string) {
   const clean = pathname.replace(/\/+$/, "");
@@ -238,7 +234,10 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
   const availableDates = getTournamentDates(allMatches, selectedTournament.id);
   const requestedDate = routeParts.length === 3 ? routeParts[2] : undefined;
   const selectedDate = requestedDate && availableDates.includes(requestedDate) ? requestedDate : availableDates[availableDates.length - 1];
-  const dateMatches = selectedDate ? getMatchesForDate(allMatches, selectedTournament.id, selectedDate) : [];
+  const dateMatches = useMemo(
+    () => (selectedDate ? getMatchesForDate(allMatches, selectedTournament.id, selectedDate) : []),
+    [allMatches, selectedTournament.id, selectedDate],
+  );
   const selectedArchive = selectedDate ? getArchiveForDate(selectedTournament.id, selectedDate) : undefined;
   const routeIsValid = pathname === "/"
     || isTournamentPicker
