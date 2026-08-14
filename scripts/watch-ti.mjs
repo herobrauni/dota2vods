@@ -68,6 +68,12 @@ function dayNumber(date) {
   return Number(date.slice(8, 10));
 }
 
+const TOURNAMENT_START = 12; // 2026-08-13 is TI 2026 group-stage day 1
+
+function dayIndex(date) {
+  return dayNumber(date) - TOURNAMENT_START;
+}
+
 function liquipediaDateLabel(date) {
   const [year, month, day] = date.split("-").map(Number);
   return `${MONTHS[month - 1]} ${day}, ${year}`;
@@ -75,7 +81,7 @@ function liquipediaDateLabel(date) {
 
 function stageLabel(date) {
   const day = dayNumber(date);
-  if (day <= 15) return `Group Stage · Day ${day - 12}`;
+  if (day <= 15) return `Group Stage · Day ${day - TOURNAMENT_START}`;
   return "Group Stage · Elimination Round";
 }
 
@@ -177,7 +183,7 @@ async function main() {
   // Regenerate every publishable day.
   const perDay = [];
   for (const date of dates) {
-    const id = `ti-2026-day${dayNumber(date)}`;
+    const id = `ti-2026-day${dayIndex(date)}`;
     const config = {
       id,
       date,
