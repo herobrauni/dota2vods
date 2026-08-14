@@ -31,9 +31,9 @@ export class JsonApiClient {
     this.lastRequestAt = 0;
   }
 
-  async get(pathname, cacheName) {
+  async get(pathname, cacheName, { refresh = false, validate = null } = {}) {
     const cacheFile = resolve(this.cacheDir, cacheName);
-    if (existsSync(cacheFile) && process.env.TI_REFRESH !== "1") {
+    if (existsSync(cacheFile) && !refresh && process.env.TI_REFRESH !== "1") {
       return JSON.parse(await readFile(cacheFile, "utf8"));
     }
 
@@ -53,6 +53,10 @@ export class JsonApiClient {
     }
     if (!response.ok) throw new Error(`${this.baseUrl} returned HTTP ${response.status} for ${pathname}`);
     const payload = await response.json();
+    if (validate) {
+      const problem = validate(payload);
+      if (problem) throw new Error(`Rejecting ${cacheName}: ${problem}`);
+    }
     await mkdir(this.cacheDir, { recursive: true });
     await writeFile(cacheFile, `${JSON.stringify(payload, null, 2)}\n`);
     return payload;
@@ -245,11 +249,12 @@ export function assertSpoilerSafe(data) {
   }
 }
 
-export async function fetchArchive(config = DEFAULT_CONFIG) {
+export async function fetchArchive(config = DEFAULT_CONFIG, options = {}) {
+  const { refreshLeague = false, validateDetails = false } = options;
   const liquipediaClient = new LiquipediaClient();
   const parsedPage = await liquipediaClient.parsePage("The_International/2026/Group_Stage", {
     cacheFile: resolve(config.liquipediaCache),
-    refresh: process.env.TI_REFRESH === "1",
+    refresh: process.env.TI_REFRESH === "1" || options.refreshLiquipedia === true,
   });
   const liquipedia = parseDayPage({
     html: parsedPage.text,
@@ -262,7 +267,7 @@ export async function fetchArchive(config = DEFAULT_CONFIG) {
   }
 
   const openDota = new JsonApiClient({ baseUrl: "https://api.opendota.com/api", cacheDir: resolve(config.cache) });
-  const matches = await openDota.get(`/leagues/${LEAGUE_ID}/matches`, "opendota.matches.json");
+  const matches = await openDota.get(`/leagues/${LEAGUE_ID}/matches`, "opendota.matches.json", { refresh: refreshLeague });
   const teams = await openDota.get(`/leagues/${LEAGUE_ID}/teams`, "opendota.teams.json");
   const heroes = await openDota.get("/constants/heroes", "opendota.heroes.json");
   const teamKeys = new Set(teams.map((team) => teamKey(team.name?.trim() ?? "")));
@@ -289,7 +294,13 @@ export async function fetchArchive(config = DEFAULT_CONFIG) {
 
   const detailsByMatchId = new Map();
   for (const match of relevantMatches) {
-    detailsByMatchId.set(match.match_id, await openDota.get(`/matches/${match.match_id}`, `opendota.match-${match.match_id}.json`));
+    detailsByMatchId.set(match.match_id, await openDota.get(`/matches/${match.match_id}`, `opendota.match-${match.match_id}.json`, {
+      validate: validateDetails
+        ? (payload) => (Array.isArray(payload?.picks_bans) && payload.picks_bans.length >= 20 && Array.isArray(payload?.players) && payload.players.length === 10
+          ? null
+          : `match ${match.match_id} details incomplete (picks_bans=${payload?.picks_bans?.length ?? "missing"}, players=${payload?.players?.length ?? "missing"})`)
+        : null,
+    }));
   }
   const data = toWebsiteData({
     liquipedia: { ...liquipedia, matches: completedMatches },

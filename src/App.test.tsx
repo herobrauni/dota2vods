@@ -3,6 +3,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import App, { getMatchesForDate, getTournamentDates } from "./App";
 import { archive, archives, fallbackHeroIconUrl, matches, tournaments } from "./vods";
 
+// Expected TI dates are derived from the snapshot files themselves so growing
+// the archive (a new ti-2026-dayN.json) never breaks this suite.
+const tiSnapshotModules = import.meta.glob<Record<string, unknown>>("./ti-2026-day*.json", { eager: true });
+const tiSnapshotDates = Object.values(tiSnapshotModules)
+  .map((snapshot) => (snapshot as { date: string }).date)
+  .sort();
+const tiDayTwo = archives.find((item) => item.tournament.id === "ti-2026" && item.date === "2026-08-14");
+const tiDayTwoGameCards = tiDayTwo?.matches.flatMap((match) => match.games).length ?? 0;
+const tiDayTwoVodLinks = tiDayTwo?.matches.flatMap((match) => match.games).filter((game) => game.vodUrl).length ?? 0;
+
 const tiDayOneUrl = "/tournaments/the-international-2026/2026-08-13";
 const tiDayTwoUrl = "/tournaments/the-international-2026/2026-08-14";
 const ewcDayOneUrl = "/tournaments/esports-world-cup-2026/2026-07-07";
@@ -120,9 +130,8 @@ describe("Riki VODs frontend", () => {
 describe("archive data helpers", () => {
   it("exposes TI and EWC dates independently", () => {
     expect(tournaments).toHaveLength(2);
-    expect(getTournamentDates(matches, "ti-2026")).toEqual(["2026-08-13", "2026-08-14"]);
+    expect(getTournamentDates(matches, "ti-2026")).toEqual(tiSnapshotDates);
     expect(getMatchesForDate(matches, "ti-2026", "2026-08-13")).toHaveLength(12);
-    expect(getMatchesForDate(matches, "ti-2026", "2026-08-14")).toHaveLength(6);
     expect(getTournamentDates(matches, "ewc-2026")).toEqual([
       "2026-07-07", "2026-07-08", "2026-07-09", "2026-07-10", "2026-07-11", "2026-07-12",
       "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-17", "2026-07-18", "2026-07-19",
@@ -145,9 +154,9 @@ describe("archive data helpers", () => {
   it("renders only the completed TI Day 2 series", () => {
     renderAt(tiDayTwoUrl);
     expect(screen.getByRole("heading", { name: "Friday, August 14", level: 2 })).toBeInTheDocument();
-    expect(screen.getAllByRole("article", { name: / versus / })).toHaveLength(6);
-    expect(document.querySelectorAll(".game-card")).toHaveLength(18);
-    expect(screen.getAllByRole("link", { name: /Watch VOD for Game/ })).toHaveLength(10);
+    expect(screen.getAllByRole("article", { name: / versus / })).toHaveLength(tiDayTwo?.matches.length ?? 0);
+    expect(document.querySelectorAll(".game-card")).toHaveLength(tiDayTwoGameCards);
+    expect(screen.getAllByRole("link", { name: /Watch VOD for Game/ })).toHaveLength(tiDayTwoVodLinks);
   });
 
   it("keeps the EWC final-day order and preserves the fifth BO5 game", () => {

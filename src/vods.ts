@@ -1,6 +1,12 @@
-import dayOneData from "./ti-2026-day1.json";
-import dayTwoData from "./ti-2026-day2.json";
 import ewcData from "./ewc-2026.json";
+
+// Day snapshots are discovered by filename so a generated ti-2026-dayN.json
+// is picked up without touching this module. Vite inlines the JSON at build
+// time; the glob stays lazy so test transforms keep working.
+const tiDayModules = import.meta.glob<{ default: ArchiveData }>("./ti-2026-day*.json", { eager: true });
+const tiDayData = Object.values(tiDayModules)
+  .map((module) => module.default as ArchiveData)
+  .sort((left, right) => left.date.localeCompare(right.date));
 
 export type HeroPick = {
   name: string;
@@ -59,8 +65,8 @@ export type Tournament = {
   year: number;
 };
 
-export const archive = dayOneData as ArchiveData;
-export const archives: ArchiveData[] = [archive, dayTwoData as ArchiveData, ...(ewcData.archives as ArchiveData[])];
+export const archive = tiDayData[0] as ArchiveData;
+export const archives: ArchiveData[] = [...tiDayData, ...(ewcData.archives as ArchiveData[])];
 export const tournaments: Tournament[] = [...new Map(archives.map((item) => [item.tournament.id, {
   ...item.tournament,
   year: Number(item.date.slice(0, 4)),
