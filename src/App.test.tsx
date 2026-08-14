@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App, { getMatchesForDate, getTournamentDates } from "./App";
 import { archive, archives, fallbackHeroIconUrl, matches, tournaments } from "./vods";
@@ -135,6 +135,89 @@ describe("Riki VODs frontend", () => {
     expect(screen.getByRole("button", { name: "Mark this day watched" })).toBeInTheDocument();
     expect(document.querySelector(".progress-meter")?.textContent).toContain("0/12");
     expect(JSON.parse(window.localStorage.getItem("riki-vods-progress-v1") || "[]")).toHaveLength(0);
+  });
+
+  it("keeps the latest notice visible when notices overlap", () => {
+    vi.useFakeTimers();
+    try {
+      renderAt(tiDayOneUrl);
+      fireEvent.click(screen.getAllByRole("button", { name: "Mark match watched" })[0]);
+      act(() => { vi.advanceTimersByTime(2_000); });
+      fireEvent.click(screen.getByRole("button", { name: "Mark this day watched" }));
+      act(() => { vi.advanceTimersByTime(400); });
+      expect(screen.getByRole("status")).toHaveTextContent("Day progress saved on this device");
+      act(() => { vi.advanceTimersByTime(2_400); });
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps working when localStorage writes fail", () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("QuotaExceededError");
+    });
+    try {
+      renderAt(tiDayOneUrl);
+      fireEvent.click(screen.getAllByRole("button", { name: "Mark match watched" })[0]);
+      expect(screen.getByRole("button", { name: "Match watched" })).toBeInTheDocument();
+      expect(JSON.parse(window.localStorage.getItem("riki-vods-progress-v1") || "[]")).toHaveLength(0);
+    } finally {
+      setItemSpy.mockRestore();
+    }
+  });
+
+  it("replaces an unknown top-level route with the canonical archive URL", () => {
+    renderAt("/nonsense");
+    expect(window.location.pathname).toBe(`/tournaments/the-international-2026/${tiSnapshotDates.at(-1)}`);
+  });
+
+  it("replaces an unknown tournament date with the rendered day's URL", () => {
+    renderAt("/tournaments/the-international-2026/1970-01-01");
+    expect(window.location.pathname).toBe(`/tournaments/the-international-2026/${tiSnapshotDates.at(-1)}`);
+  });
+
+  it("keeps back and forward traversal intact after an invalid route is replaced", async () => {
+    const canonical = `/tournaments/the-international-2026/${tiSnapshotDates.at(-1)}`;
+    renderAt("/nonsense");
+    expect(window.location.pathname).toBe(canonical);
+    const historyLengthAfterRedirect = window.history.length;
+
+    fireEvent.click(screen.getAllByRole("link", { name: "Tournaments" })[0]);
+    expect(window.location.pathname).toBe("/tournaments");
+    expect(screen.getByRole("heading", { name: "Choose your tournament", level: 1 })).toBeInTheDocument();
+    expect(window.history.length).toBe(historyLengthAfterRedirect + 1);
+
+    window.history.back();
+    await waitFor(() => {
+      expect(window.location.pathname).toBe(canonical);
+      expect(screen.getAllByRole("article", { name: / versus / }).length).toBeGreaterThan(0);
+    });
+
+    window.history.forward();
+    await waitFor(() => {
+      expect(window.location.pathname).toBe("/tournaments");
+      expect(screen.getByRole("heading", { name: "Choose your tournament", level: 1 })).toBeInTheDocument();
+    });
+
+    expect(window.history.length).toBe(historyLengthAfterRedirect + 1);
+    expect(window.location.pathname).not.toBe("/nonsense");
+  });
+
+  it("returns to the previous entry when going back from a replaced invalid date route", async () => {
+    renderAt("/");
+    fireEvent.click(screen.getAllByRole("link", { name: "Tournaments" })[0]);
+    expect(window.location.pathname).toBe("/tournaments");
+
+    window.history.pushState({}, "", "/tournaments/does-not-exist/2020-01-01");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    await waitFor(() => expect(window.location.pathname).toBe(`/tournaments/the-international-2026/${tiSnapshotDates.at(-1)}`));
+
+    window.history.back();
+    await waitFor(() => {
+      expect(window.location.pathname).toBe("/tournaments");
+      expect(screen.getByRole("heading", { name: "Choose your tournament", level: 1 })).toBeInTheDocument();
+    });
   });
 
   it("opens hero picks and exposes source attribution", () => {

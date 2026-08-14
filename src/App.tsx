@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import {
   archive,
   archives,
@@ -232,6 +232,7 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
   const [notice, setNotice] = useState("");
 
   const routeParts = pathname.split("/").filter(Boolean);
+  const isTournamentPicker = pathname === "/tournaments";
   const routeTournament = routeParts[0] === "tournaments" ? tournaments.find((item) => item.slug === routeParts[1]) : undefined;
   const selectedTournament = routeTournament ?? getTournament(preferredTournamentId) ?? tournaments[0];
   const availableDates = getTournamentDates(allMatches, selectedTournament.id);
@@ -239,6 +240,18 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
   const selectedDate = requestedDate && availableDates.includes(requestedDate) ? requestedDate : availableDates[availableDates.length - 1];
   const dateMatches = selectedDate ? getMatchesForDate(allMatches, selectedTournament.id, selectedDate) : [];
   const selectedArchive = selectedDate ? getArchiveForDate(selectedTournament.id, selectedDate) : undefined;
+  const routeIsValid = pathname === "/"
+    || isTournamentPicker
+    || (routeTournament !== undefined
+      && (routeParts.length === 2
+        || (routeParts.length === 3 && availableDates.includes(routeParts[2]))));
+  const canonicalPath = isTournamentPicker ? "/tournaments" : selectedDate ? datePath(selectedTournament, selectedDate) : "/";
+
+  useEffect(() => {
+    if (routeIsValid) return;
+    window.history.replaceState({}, "", canonicalPath);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }, [routeIsValid, canonicalPath]);
 
   useEffect(() => {
     try {
@@ -251,15 +264,23 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
   }, []);
 
   useEffect(() => {
-    if (hydrated) localStorage.setItem(progressStorageKey, JSON.stringify(watched));
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(progressStorageKey, JSON.stringify(watched));
+    } catch {
+      // A full or unavailable localStorage keeps working for this session.
+    }
   }, [watched, hydrated]);
 
   const filteredMatches = useMemo(() => dateMatches.filter((match) => matchesForSearch(match, search, searchType)), [dateMatches, search, searchType]);
   const watchedSet = useMemo(() => new Set(watched), [watched]);
 
+  const noticeTimeout = useRef<number | undefined>(undefined);
+
   function showNotice(message: string) {
     setNotice(message);
-    window.setTimeout(() => setNotice(""), 2400);
+    window.clearTimeout(noticeTimeout.current);
+    noticeTimeout.current = window.setTimeout(() => setNotice(""), 2400);
   }
 
   function toggleWatched(gameId: string) {
@@ -296,7 +317,6 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
   const progressTotal = dateMatches.length;
   const dayGameKeys = dateMatches.flatMap((match) => match.games.map((game) => gameKey(match, game)));
   const dayIsWatched = dayGameKeys.length > 0 && dayGameKeys.every((key) => watchedSet.has(key));
-  const isTournamentPicker = pathname === "/tournaments";
 
   return <div className={`site-shell ${search ? "searching" : ""}`}>
     <header className="topbar">
