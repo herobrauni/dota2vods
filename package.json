@@ -9,6 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
     "data:ti-day1": "node scripts/fetch-ti-day1.mjs",
+    "data:ti-day2": "node scripts/fetch-ti-day2.mjs",
     "data:ewc-2026": "node scripts/fetch-ewc-2026.mjs"
   },
   "dependencies": {

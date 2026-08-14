@@ -9,7 +9,6 @@ import { JSDOM } from "jsdom";
 const API_URL = "https://liquipedia.net/dota2/api.php";
 const WIKI_URL = "https://liquipedia.net/dota2";
 const PAGE = "The_International/2026/Group_Stage";
-const DAY_ONE_DATE = "August 13, 2026";
 const CACHE_DIR = resolve(".cache", "liquipedia");
 const CACHE_FILE = resolve(CACHE_DIR, "the-international-2026-group-stage.parse.json");
 const USER_AGENT = process.env.LIQUIPEDIA_USER_AGENT
@@ -202,7 +201,8 @@ function parseBracketStage(root, stage) {
  * Scores, winners, durations, and result labels are omitted; the best-of
  * format is retained so the archive can render every possible game.
  */
-export function parseDayOnePage({ html, page = PAGE, date = DAY_ONE_DATE, revisionId = null }) {
+export function parseDayPage({ html, page = PAGE, date, revisionId = null }) {
+  if (!date) throw new Error("A Liquipedia date is required when parsing a tournament day");
   const document = new JSDOM(html).window.document;
   const matches = [];
   for (const match of document.querySelectorAll(".brkts-matchlist-match")) {
@@ -241,6 +241,9 @@ export function parseDayOnePage({ html, page = PAGE, date = DAY_ONE_DATE, revisi
   };
 }
 
+// Kept as a compatibility alias for the existing EWC importer and callers.
+export const parseDayOnePage = parseDayPage;
+
 export function parseBracketStages({ html, page }) {
   const document = new JSDOM(html).window.document;
   const matches = [];
@@ -271,9 +274,10 @@ async function main() {
     cacheFile: CACHE_FILE,
     refresh: process.env.LIQUIPEDIA_REFRESH === "1",
   });
-  const report = parseDayOnePage({
+  const report = parseDayPage({
     html: parsed.text,
     page: parsed.title ?? PAGE,
+    date: "August 13, 2026",
     revisionId: parsed.revid ?? null,
   });
   report.fetchedAt = parsed.fetchedAt;

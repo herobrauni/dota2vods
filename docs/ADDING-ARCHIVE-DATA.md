@@ -1,19 +1,18 @@
 # Adding a tournament or archive day
 
-The site stores dated, spoiler-safe snapshots. TI Day 1 lives in
-`src/ti-2026-day1.json`; EWC 2026 uses twelve dated snapshots inside
+The site stores dated, spoiler-safe snapshots. TI Days 1 and 2 live in
+`src/ti-2026-day1.json` and `src/ti-2026-day2.json`; EWC 2026 uses twelve dated snapshots inside
 `src/ewc-2026.json` for Group Stage, Survival, and Playoffs. The frontend
 imports all snapshots and groups them by tournament.
 
-## Add TI 2026 Day 2
+## Add a TI 2026 archive day
 
 1. Confirm the day label and match list on the [Liquipedia Group Stage page](https://liquipedia.net/dota2/The_International/2026/Group_Stage).
    The parser currently filters the server-rendered API response by an exact
    date string such as `August 13, 2026`.
 
-2. Generalize `parseDayOnePage` in `scripts/liquipedia.mjs` to
-   `parseDayPage({ html, page, date, revisionId })`, removing the hard-coded
-   `DAY_ONE_DATE` constant.
+2. Use the generalized `parseDayPage({ html, page, date, revisionId })` parser
+   in `scripts/liquipedia.mjs`; it accepts the exact Liquipedia date label.
 
 3. Parameterize `scripts/fetch-ti-day1.mjs` with a config object. For Day 2,
    keep the OpenDota league ID `19719`, but use a separate identity and cache:

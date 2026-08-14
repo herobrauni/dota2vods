@@ -4,6 +4,7 @@ import App, { getMatchesForDate, getTournamentDates } from "./App";
 import { archive, archives, fallbackHeroIconUrl, matches, tournaments } from "./vods";
 
 const tiDayOneUrl = "/tournaments/the-international-2026/2026-08-13";
+const tiDayTwoUrl = "/tournaments/the-international-2026/2026-08-14";
 const ewcDayOneUrl = "/tournaments/esports-world-cup-2026/2026-07-07";
 
 function renderAt(pathname: string) {
@@ -119,9 +120,9 @@ describe("Riki VODs frontend", () => {
 describe("archive data helpers", () => {
   it("exposes TI and EWC dates independently", () => {
     expect(tournaments).toHaveLength(2);
-    expect(getTournamentDates(matches, "ti-2026")).toEqual(["2026-08-13"]);
+    expect(getTournamentDates(matches, "ti-2026")).toEqual(["2026-08-13", "2026-08-14"]);
     expect(getMatchesForDate(matches, "ti-2026", "2026-08-13")).toHaveLength(12);
-    expect(getMatchesForDate(matches, "ti-2026", "2026-08-14")).toHaveLength(0);
+    expect(getMatchesForDate(matches, "ti-2026", "2026-08-14")).toHaveLength(6);
     expect(getTournamentDates(matches, "ewc-2026")).toEqual([
       "2026-07-07", "2026-07-08", "2026-07-09", "2026-07-10", "2026-07-11", "2026-07-12",
       "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-17", "2026-07-18", "2026-07-19",
@@ -139,6 +140,14 @@ describe("archive data helpers", () => {
     renderAt(ewcDayOneUrl);
     expect(screen.getByRole("heading", { name: "Tuesday, July 7", level: 2 })).toBeInTheDocument();
     expect(screen.getAllByRole("article", { name: / versus / })).toHaveLength(12);
+  });
+
+  it("renders only the completed TI Day 2 series", () => {
+    renderAt(tiDayTwoUrl);
+    expect(screen.getByRole("heading", { name: "Friday, August 14", level: 2 })).toBeInTheDocument();
+    expect(screen.getAllByRole("article", { name: / versus / })).toHaveLength(6);
+    expect(document.querySelectorAll(".game-card")).toHaveLength(18);
+    expect(screen.getAllByRole("link", { name: /Watch VOD for Game/ })).toHaveLength(10);
   });
 
   it("keeps the EWC final-day order and preserves the fifth BO5 game", () => {

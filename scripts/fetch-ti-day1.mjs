@@ -4,18 +4,26 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { LiquipediaClient, parseDayOnePage } from "./liquipedia.mjs";
+import { LiquipediaClient, parseDayPage } from "./liquipedia.mjs";
 
-const LEAGUE_ID = 19719;
-const OUTPUT = resolve("src", "ti-2026-day1.json");
-const CACHE = resolve(".cache", "ti-2026");
-const LIQUIPEDIA_CACHE = resolve(".cache", "liquipedia", "the-international-2026-group-stage.parse.json");
 const USER_AGENT = "dota2vods/0.1 (https://github.com/herobrauni/dota2vods; brauni@brauni.dev)";
+const DEFAULT_CACHE = resolve(".cache", "ti-2026");
+const DEFAULT_CONFIG = {
+  id: "ti-2026-day1",
+  date: "2026-08-13",
+  liquipediaDate: "August 13, 2026",
+  stage: "Group Stage · Day 1",
+  output: "src/ti-2026-day1.json",
+  cache: ".cache/ti-2026",
+  liquipediaCache: ".cache/liquipedia/the-international-2026-group-stage.parse.json",
+  matchIdPrefix: "ti-2026-day1",
+};
+const LEAGUE_ID = 19719;
 
 const sleep = (milliseconds) => new Promise((resolveSleep) => setTimeout(resolveSleep, milliseconds));
 
 export class JsonApiClient {
-  constructor({ baseUrl, minIntervalMs = 1_000, userAgent = USER_AGENT, cacheDir = CACHE }) {
+  constructor({ baseUrl, minIntervalMs = 1_000, userAgent = USER_AGENT, cacheDir = DEFAULT_CACHE }) {
     this.baseUrl = baseUrl;
     this.minIntervalMs = minIntervalMs;
     this.userAgent = userAgent;
@@ -53,7 +61,7 @@ export class JsonApiClient {
 
 const normalize = (value) => value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
-// Liquipedia reflects several team rebrands on its current Day 1 page while
+// Liquipedia reflects several team rebrands on its current page while
 // OpenDota retains the names used when the matches were recorded.
 const teamAliases = new Map([
   ["1w team", "1w"],
@@ -172,7 +180,11 @@ export function toWebsiteData({ liquipedia, matches, teams, detailsByMatchId, he
       if (!candidates.length) {
         throw new Error(`Could not match Liquipedia series ${liquipediaTeamA} vs ${liquipediaTeamB} to OpenDota`);
       }
-      const seriesId = candidates.find((match) => match.series_id != null)?.series_id ?? candidates[0].series_id;
+      const scheduledTimestamp = Date.parse(liquipediaMatch.scheduledAt ?? "");
+      const nearestCandidate = Number.isFinite(scheduledTimestamp)
+        ? [...candidates].sort((left, right) => Math.abs(left.start_time * 1_000 - scheduledTimestamp) - Math.abs(right.start_time * 1_000 - scheduledTimestamp))[0]
+        : candidates[0];
+      const seriesId = nearestCandidate.series_id ?? candidates.find((match) => match.series_id != null)?.series_id ?? candidates[0].series_id;
       let seriesMatches = candidates.filter((match) => match.series_id === seriesId || (match.series_id == null && candidates.length <= 3));
       if (seriesMatches.length < 2 && candidates.length <= 3) seriesMatches = candidates.slice(0, 3);
       const teamAId = teamKey(teamById.get(candidates[0].radiant_team_id)?.name?.trim()) === teamKey(liquipediaTeamA)
@@ -233,54 +245,75 @@ export function assertSpoilerSafe(data) {
   }
 }
 
-async function main() {
+export async function fetchArchive(config = DEFAULT_CONFIG) {
   const liquipediaClient = new LiquipediaClient();
   const parsedPage = await liquipediaClient.parsePage("The_International/2026/Group_Stage", {
-    cacheFile: LIQUIPEDIA_CACHE,
+    cacheFile: resolve(config.liquipediaCache),
     refresh: process.env.TI_REFRESH === "1",
   });
-  const liquipedia = parseDayOnePage({
+  const liquipedia = parseDayPage({
     html: parsedPage.text,
     page: parsedPage.title,
+    date: config.liquipediaDate,
+    revisionId: parsedPage.revid ?? null,
   });
-  if (liquipedia.matches.length !== 12) {
-    throw new Error(`Expected 12 Liquipedia Day 1 matches, received ${liquipedia.matches.length}`);
+  if (!liquipedia.matches.length) {
+    throw new Error(`No completed matches found for Liquipedia ${config.liquipediaDate}`);
   }
 
-  const openDota = new JsonApiClient({ baseUrl: "https://api.opendota.com/api", cacheDir: CACHE });
+  const openDota = new JsonApiClient({ baseUrl: "https://api.opendota.com/api", cacheDir: resolve(config.cache) });
   const matches = await openDota.get(`/leagues/${LEAGUE_ID}/matches`, "opendota.matches.json");
   const teams = await openDota.get(`/leagues/${LEAGUE_ID}/teams`, "opendota.teams.json");
   const heroes = await openDota.get("/constants/heroes", "opendota.heroes.json");
   const teamKeys = new Set(teams.map((team) => teamKey(team.name?.trim() ?? "")));
   const selectedPairs = new Set(liquipedia.matches.map((match) => pairKey(...match.teams)));
+  const targetDate = config.date;
   const relevantMatches = matches.filter((match) => {
     const radiant = teams.find((team) => team.team_id === match.radiant_team_id)?.name?.trim();
     const dire = teams.find((team) => team.team_id === match.dire_team_id)?.name?.trim();
-    return radiant && dire && selectedPairs.has(pairKey(radiant, dire));
+    return radiant && dire
+      && selectedPairs.has(pairKey(radiant, dire))
+      && new Date(match.start_time * 1_000).toISOString().slice(0, 10) === targetDate;
   });
-  if (!relevantMatches.length || ![...selectedPairs].every((key) => relevantMatches.some((match) => {
-    const radiant = teams.find((team) => team.team_id === match.radiant_team_id)?.name?.trim();
-    const dire = teams.find((team) => team.team_id === match.dire_team_id)?.name?.trim();
-    return pairKey(radiant, dire) === key;
-  }))) {
-    throw new Error(`OpenDota did not cover all Liquipedia Day 1 pairs; known teams: ${[...teamKeys].join(", ")}`);
+  const completedMatches = liquipedia.matches.filter((liquipediaMatch) => {
+    const key = pairKey(...liquipediaMatch.teams);
+    return relevantMatches.some((match) => {
+      const radiant = teams.find((team) => team.team_id === match.radiant_team_id)?.name?.trim();
+      const dire = teams.find((team) => team.team_id === match.dire_team_id)?.name?.trim();
+      return pairKey(radiant, dire) === key;
+    });
+  });
+  if (!completedMatches.length) {
+    throw new Error(`OpenDota has no completed matches for Liquipedia ${config.liquipediaDate}; known teams: ${[...teamKeys].join(", ")}`);
   }
 
   const detailsByMatchId = new Map();
   for (const match of relevantMatches) {
     detailsByMatchId.set(match.match_id, await openDota.get(`/matches/${match.match_id}`, `opendota.match-${match.match_id}.json`));
   }
-  const data = toWebsiteData({ liquipedia, matches: relevantMatches, teams, detailsByMatchId, heroes });
+  const data = toWebsiteData({
+    liquipedia: { ...liquipedia, matches: completedMatches },
+    matches: relevantMatches,
+    teams,
+    detailsByMatchId,
+    heroes,
+    config: {
+      matchIdPrefix: config.matchIdPrefix ?? config.id,
+      date: config.date,
+      stage: config.stage,
+    },
+  });
   assertSpoilerSafe(data);
-  await writeFile(OUTPUT, `${JSON.stringify(data, null, 2)}\n`);
+  await writeFile(resolve(config.output), `${JSON.stringify(data, null, 2)}\n`);
   const games = data.matches.flatMap((match) => match.games.filter((game) => game.source === "opendota"));
   const missingVods = games.filter((game) => !game.vodUrl).length;
-  console.log(`TI 2026 Day 1: wrote ${data.matches.length} matches and ${games.length} games to ${OUTPUT}`);
+  console.log(`TI 2026 ${config.liquipediaDate}: wrote ${data.matches.length} matches and ${games.length} games to ${resolve(config.output)}`);
   console.log(`Liquipedia casters: ${new Set(data.matches.flatMap((match) => match.casters)).size}; missing game VODs: ${missingVods}`);
+  return data;
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch((error) => {
+  fetchArchive().catch((error) => {
     console.error(error.message);
     process.exitCode = 1;
   });

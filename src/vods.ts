@@ -1,4 +1,5 @@
 import dayOneData from "./ti-2026-day1.json";
+import dayTwoData from "./ti-2026-day2.json";
 import ewcData from "./ewc-2026.json";
 
 export type HeroPick = {
@@ -59,7 +60,7 @@ export type Tournament = {
 };
 
 export const archive = dayOneData as ArchiveData;
-export const archives: ArchiveData[] = [archive, ...(ewcData.archives as ArchiveData[])];
+export const archives: ArchiveData[] = [archive, dayTwoData as ArchiveData, ...(ewcData.archives as ArchiveData[])];
 export const tournaments: Tournament[] = [...new Map(archives.map((item) => [item.tournament.id, {
   ...item.tournament,
   year: Number(item.date.slice(0, 4)),
