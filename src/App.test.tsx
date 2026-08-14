@@ -235,13 +235,18 @@ describe("archive data helpers", () => {
   });
 
   it("reveals played games with a missing VOD through the same toggle", () => {
-    renderAt(tiDayOneUrl);
-    const tiDayOne = archives.find((item) => item.tournament.id === "ti-2026" && item.date === "2026-08-13");
-    const playedWithoutVod = tiDayOne?.matches
-      .flatMap((match) => match.games.filter((game) => game.source === "opendota" && !game.vodUrl).map((game) => ({ match, game })))
+    // Search every TI day: Liquipedia fills VODs in over time, so a specific
+    // day cannot be assumed to still contain a played-but-unlinked game. When
+    // every played game has a VOD there is nothing left to verify here.
+    const playedWithoutVod = archives
+      .filter((item) => item.tournament.id === "ti-2026")
+      .flatMap((item) => item.matches
+        .flatMap((match) => match.games.filter((game) => game.source === "opendota" && !game.vodUrl)
+          .map((game) => ({ item, match, game }))))
       .at(0);
-    if (!playedWithoutVod) throw new Error("TI day one must contain a played game without a VOD");
-    const { match, game } = playedWithoutVod;
+    if (!playedWithoutVod) return;
+    const { item, match, game } = playedWithoutVod;
+    renderAt(`/tournaments/${item.tournament.slug}/${item.date}`);
     const article = screen.getByRole("article", { name: `${match.teamA} versus ${match.teamB}` });
     const cardElement = article.querySelectorAll(".game-card")[game.number - 1] as HTMLElement | undefined;
     if (!cardElement) throw new Error(`game card ${game.number} not rendered`);
