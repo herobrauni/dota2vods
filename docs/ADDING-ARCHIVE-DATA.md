@@ -64,6 +64,28 @@ Playoffs to OpenDota league `19785`, and writes `src/ewc-2026.json`. The
 single-player TaiLung–Abed entries are omitted. When Liquipedia provides one
 series VOD for multiple games, the generator reuses that link for each game.
 
+## Automated hourly publishing
+
+`scripts/watch-ti.mjs` runs hourly via a Hermes no-agent cron job. Each run it
+fetches the Liquipedia Group Stage page (one `action=parse`) and the OpenDota
+league match list, and fingerprints: publishable day dates, every VOD link,
+and every league match ID. If the fingerprint is unchanged it prints nothing
+(no message, no commit, no Cloudflare deploy). Otherwise it regenerates all
+publishable day snapshots (`src/ti-2026-dayN.json`, N = tournament day index),
+reverts files whose only change is `generatedAt`, gates on `npm test` +
+`npm run build`, and commits + pushes to `main`.
+
+Because `src/vods.ts` discovers `ti-2026-day*.json` via `import.meta.glob`, a
+new day file appears on the site without code changes; the test suite derives
+its TI expectations from the same snapshots.
+
+Scope: the Group Stage page only. The Main Event bracket page needs a bracket
+parser (see `parseBracketStages`) and manual wiring when the stage begins.
+
+Env flags: `TI_WATCH_DRY_RUN=1` (no commit/push), `TI_WATCH_FORCE=1`
+(regenerate despite an unchanged fingerprint). State lives in
+`.cache/ti-watch/` (fingerprint + last parse).
+
 ## Add a different tournament
 
 Use the same sequence, with these additional inputs:

@@ -180,7 +180,8 @@ async function main() {
     return; // silent: no new games or VODs
   }
 
-  // Regenerate every publishable day.
+  // Regenerate every publishable day. One retry pass absorbs transient
+  // OpenDota lag (e.g. an incompletely-parsed match detail mid-series).
   const perDay = [];
   for (const date of dates) {
     const id = `ti-2026-day${dayIndex(date)}`;
@@ -194,7 +195,15 @@ async function main() {
       liquipediaCache: LIQUIPEDIA_CACHE,
       matchIdPrefix: id,
     };
-    const data = await fetchArchive(config, { refreshLeague: true, refreshLiquipedia: false, validateDetails: true });
+    const runOnce = async () => fetchArchive(config, { refreshLeague: true, refreshLiquipedia: false, validateDetails: true });
+    let data;
+    try {
+      data = await runOnce();
+    } catch (firstError) {
+      console.error(`Regenerating ${id} failed once (${firstError.message}); retrying in 90s…`);
+      await sleep(90_000);
+      data = await runOnce();
+    }
     assertSpoilerSafe(data);
     perDay.push({ id, relative: `src/${id}.json`, data });
   }
