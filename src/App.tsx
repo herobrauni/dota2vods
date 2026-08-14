@@ -145,35 +145,44 @@ function SearchPanel({ search, searchType, onSearch, onSearchType }: { search: s
 }
 
 function GameCard({ match, game, watched, expanded, heroSearchMatch, onToggleWatched, onTogglePicks }: { match: MatchRecord; game: GameLink; watched: boolean; expanded: boolean; heroSearchMatch: boolean; onToggleWatched: () => void; onTogglePicks: () => void }) {
+  const [revealed, setRevealed] = useState(false);
+  const concealed = game.source === "concealed-fallback";
+  const playGlyph = <><span className="fog-line" /><span className="play-glyph">▶</span><span className="fog-line" /></>;
+  const visualLabel = `Game ${game.number}: ${match.teamA} versus ${match.teamB}`;
+  function activateGame() {
+    if (game.vodUrl) window.open(game.vodUrl, "_blank", "noopener,noreferrer");
+    else setRevealed((current) => !current);
+  }
   return <div className={`game-card ${watched ? "watched" : ""} ${heroSearchMatch ? "hero-search-match" : ""}`}>
     <div className="game-top"><span>GAME {game.number}</span>{watched && <span className="check">✓ WATCHED</span>}</div>
-    {game.vodUrl ? <a className="game-visual game-visual-link" href={game.vodUrl} target="_blank" rel="noreferrer" aria-label={`Watch VOD for Game ${game.number}: ${match.teamA} versus ${match.teamB}`}><span className="fog-line" /><span className="play-glyph">▶</span><span className="fog-line" /></a> : <div className="game-visual"><span className="fog-line" /><span className="play-glyph">▶</span><span className="fog-line" /></div>}
+    <button type="button" className="game-visual game-visual-link" onClick={activateGame} aria-label={visualLabel} aria-expanded={revealed}>{playGlyph}</button>
     <div className="game-actions">
-      {!game.vodUrl && <span className="not-played">VOD unavailable</span>}
-      {game.vodUrl && <button type="button" className="watch-toggle" onClick={onToggleWatched} aria-label={`${watched ? "Mark unwatched" : "Mark watched"} Game ${game.number} of ${match.teamA} versus ${match.teamB}`}>{watched ? "Undo" : "Mark watched"}</button>}
+      {!game.vodUrl && revealed && <span className="not-played">{concealed ? "This game was not played" : "VOD unavailable"}</span>}
+      <button type="button" className="watch-toggle" onClick={onToggleWatched} aria-label={`${watched ? "Mark unwatched" : "Mark watched"} Game ${game.number} of ${match.teamA} versus ${match.teamB}`}>{watched ? "Undo" : "Mark watched"}</button>
     </div>
     <div className="picks-wrap">
       <button type="button" className="picks-toggle" onClick={onTogglePicks} aria-expanded={expanded}><span>Hero picks</span><span>{expanded ? "Hide −" : "Show +"}</span></button>
-      {expanded && <div className="picks-panel">
-        <div><small>{match.teamA}</small><ul>{game.heroes.teamA.map((hero) => <HeroPick key={`${game.number}-a-${hero.name}`} hero={hero} />)}</ul></div>
-        <span className="draft-vs">VS</span>
-        <div><small>{match.teamB}</small><ul>{game.heroes.teamB.map((hero) => <HeroPick key={`${game.number}-b-${hero.name}`} hero={hero} />)}</ul></div>
-      </div>}
+      {expanded && (concealed
+        ? <div className="picks-panel"><p className="picks-note">Hero picks are not available for this game.</p></div>
+        : <div className="picks-panel">
+          <div><small>{match.teamA}</small><ul>{game.heroes.teamA.map((hero) => <HeroPick key={`${game.number}-a-${hero.name}`} hero={hero} />)}</ul></div>
+          <span className="draft-vs">VS</span>
+          <div><small>{match.teamB}</small><ul>{game.heroes.teamB.map((hero) => <HeroPick key={`${game.number}-b-${hero.name}`} hero={hero} />)}</ul></div>
+        </div>)}
     </div>
   </div>;
 }
 
 function MatchCard({ match, index, watched, expandedPicks, search, searchType, onToggleWatched, onTogglePicks, onCatchUp }: { match: MatchRecord; index: number; watched: Set<string>; expandedPicks: Set<string>; search: string; searchType: SearchType; onToggleWatched: (gameId: string) => void; onTogglePicks: (gameId: string) => void; onCatchUp: () => void }) {
-  const playableGames = match.games.filter((game) => game.vodUrl);
-  const watchedCount = playableGames.filter((game) => watched.has(gameKey(match, game))).length;
-  const complete = playableGames.length > 0 && watchedCount === playableGames.length;
+  const watchedCount = match.games.filter((game) => watched.has(gameKey(match, game))).length;
+  const complete = watchedCount === match.games.length;
   return <article className="series-card" aria-label={`${match.teamA} versus ${match.teamB}`}>
     <div className="series-meta"><div><span className="series-time">{String(index + 1).padStart(2, "0")}</span><span className="series-stage">{match.casters.length ? `On the call · ${match.casters.join(" + ")}` : "Caster information unavailable"}</span></div><button type="button" onClick={onCatchUp}>{complete ? "Match watched" : "Mark match watched"}</button></div>
     <div className="matchup"><div className="team"><TeamMark name={match.teamA} logoUrl={match.teamALogoUrl} /><strong>{match.teamA}</strong></div><span className="versus">VS</span><div className="team team-right"><strong>{match.teamB}</strong><TeamMark name={match.teamB} logoUrl={match.teamBLogoUrl} alt /></div></div>
     <div className="game-grid">
       {match.games.map((game) => <GameCard key={game.number} match={match} game={game} watched={watched.has(gameKey(match, game))} expanded={expandedPicks.has(gameKey(match, game))} heroSearchMatch={gameHasHeroSearchMatch(game, search, searchType)} onToggleWatched={() => onToggleWatched(gameKey(match, game))} onTogglePicks={() => onTogglePicks(gameKey(match, game))} />)}
     </div>
-    <div className="series-footer"><span>{watchedCount}/{playableGames.length} games marked watched</span><span>Progress stays on this device</span></div>
+    <div className="series-footer"><span>{watchedCount}/{match.games.length} games marked watched</span><span>Progress stays on this device</span></div>
   </article>;
 }
 
@@ -182,8 +191,7 @@ function gameKey(match: MatchRecord, game: GameLink) {
 }
 
 function matchIsWatched(match: MatchRecord, watched: Set<string>) {
-  const playableGames = match.games.filter((game) => game.vodUrl);
-  return playableGames.length > 0 && playableGames.every((game) => watched.has(gameKey(match, game)));
+  return match.games.length > 0 && match.games.every((game) => watched.has(gameKey(match, game)));
 }
 
 function ProgressBar({ watchedCount, total }: { watchedCount: number; total: number }) {
@@ -259,14 +267,14 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
   }
 
   function markMatch(match: MatchRecord) {
-    const keys = match.games.filter((game) => game.vodUrl).map((game) => gameKey(match, game));
+    const keys = match.games.map((game) => gameKey(match, game));
     const complete = keys.length > 0 && keys.every((key) => watchedSet.has(key));
     setWatched((current) => complete ? current.filter((key) => !keys.includes(key)) : Array.from(new Set([...current, ...keys])));
     showNotice(complete ? "Match marked unwatched" : "Match progress saved on this device");
   }
 
   function catchUpToDate() {
-    const keys = dateMatches.flatMap((match) => match.games.filter((game) => game.vodUrl).map((game) => gameKey(match, game)));
+    const keys = dateMatches.flatMap((match) => match.games.map((game) => gameKey(match, game)));
     const complete = keys.length > 0 && keys.every((key) => watchedSet.has(key));
     setWatched((current) => complete ? current.filter((key) => !keys.includes(key)) : Array.from(new Set([...current, ...keys])));
     showNotice(complete ? "Day marked unwatched" : "Day progress saved on this device");
@@ -284,10 +292,9 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
     window.scrollTo({ top: 0 });
   }
 
-  const currentDayMatches = dateMatches.filter((match) => match.games.some((game) => game.vodUrl));
-  const watchedCurrentDayMatches = currentDayMatches.filter((match) => matchIsWatched(match, watchedSet)).length;
-  const progressTotal = currentDayMatches.length;
-  const dayGameKeys = dateMatches.flatMap((match) => match.games.filter((game) => game.vodUrl).map((game) => gameKey(match, game)));
+  const watchedCurrentDayMatches = dateMatches.filter((match) => matchIsWatched(match, watchedSet)).length;
+  const progressTotal = dateMatches.length;
+  const dayGameKeys = dateMatches.flatMap((match) => match.games.map((game) => gameKey(match, game)));
   const dayIsWatched = dayGameKeys.length > 0 && dayGameKeys.every((key) => watchedSet.has(key));
   const isTournamentPicker = pathname === "/tournaments";
 

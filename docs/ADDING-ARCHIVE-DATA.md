@@ -104,10 +104,11 @@ the missing source instead of adding a video-parsing fallback.
 
 ## Data and spoiler-safety checklist
 
-Every generated game must have ten hero picks, and every match must render the
-number of controls specified by its best-of format. A missing game is
-represented by the existing concealed fallback behavior; it must not expose a
-score or winner.
+Every played game must have ten hero picks, and every match must render the
+number of controls specified by its best-of format. A game that was not played
+is padded out by the existing concealed fallback: it carries no VOD link, no
+match id, and empty hero arrays — cloning a sibling game's picks or VOD would
+leak its draft and video. It must not expose a score or winner.
 
 Before committing a new snapshot, check its shape and forbidden fields:
 

@@ -13,9 +13,9 @@ export type HeroPick = {
   iconUrl: string | null;
 };
 
-export type GameLink = {
+export type PlayedGame = {
   number: 1 | 2 | 3 | 4 | 5;
-  source: "opendota" | "concealed-fallback";
+  source: "opendota";
   matchId?: number;
   vodUrl: string | null;
   heroes: {
@@ -23,6 +23,21 @@ export type GameLink = {
     teamB: HeroPick[];
   };
 };
+
+// Concealed games pad a series to its best-of length. They carry no VOD and
+// no hero picks: cloning a played sibling game would leak its draft (and video),
+// and searchable hero names must never surface a game that was not played.
+export type ConcealedGame = {
+  number: 1 | 2 | 3 | 4 | 5;
+  source: "concealed-fallback";
+  vodUrl: null;
+  heroes: {
+    teamA: [];
+    teamB: [];
+  };
+};
+
+export type GameLink = PlayedGame | ConcealedGame;
 
 export type MatchRecord = {
   id: string;

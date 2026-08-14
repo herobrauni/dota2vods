@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App, { getMatchesForDate, getTournamentDates } from "./App";
 import { archive, archives, fallbackHeroIconUrl, matches, tournaments } from "./vods";
@@ -11,7 +11,6 @@ const tiSnapshotDates = Object.values(tiSnapshotModules)
   .sort();
 const tiDayTwo = archives.find((item) => item.tournament.id === "ti-2026" && item.date === "2026-08-14");
 const tiDayTwoGameCards = tiDayTwo?.matches.flatMap((match) => match.games).length ?? 0;
-const tiDayTwoVodLinks = tiDayTwo?.matches.flatMap((match) => match.games).filter((game) => game.vodUrl).length ?? 0;
 
 const tiDayOneUrl = "/tournaments/the-international-2026/2026-08-13";
 const tiDayTwoUrl = "/tournaments/the-international-2026/2026-08-14";
@@ -51,10 +50,31 @@ describe("Riki VODs frontend", () => {
     expect(screen.getByRole("heading", { name: "Thursday, August 13", level: 2 })).toBeInTheDocument();
     expect(screen.getAllByRole("article", { name: / versus / })).toHaveLength(12);
     expect(document.querySelectorAll(".game-card")).toHaveLength(36);
-    const vodLinks = screen.getAllByRole("link", { name: /Watch VOD for Game/ });
-    expect(vodLinks.length).toBeGreaterThan(20);
-    expect(vodLinks[0]).toHaveClass("game-visual-link");
     expect(screen.queryByText("Watch VOD ↗")).not.toBeInTheDocument();
+  });
+
+  it("renders an identical pre-click interface for every game and opens the VOD on first click", () => {
+    renderAt(tiDayOneUrl);
+    expect(screen.queryAllByRole("link", { name: /^Game \d+: .+ versus .+$/ })).toHaveLength(0);
+    expect(screen.queryByText("VOD unavailable")).not.toBeInTheDocument();
+    expect(screen.queryByText("This game was not played")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /^Game \d+: .+ versus .+$/ })).toHaveLength(36);
+    expect(screen.getAllByRole("button", { name: /^Mark watched Game \d+ of .+ versus .+$/ })).toHaveLength(36);
+
+    const vodGame = archive.matches
+      .flatMap((match) => match.games.filter((game) => game.vodUrl).map((game) => ({ match, game })))
+      .at(0);
+    if (!vodGame) throw new Error("TI day one must contain a game with a VOD");
+    const label = `Game ${vodGame.game.number}: ${vodGame.match.teamA} versus ${vodGame.match.teamB}`;
+    const cardIndex = archive.matches.flatMap((match) => match.games).indexOf(vodGame.game);
+    const cardElement = document.querySelectorAll(".game-card")[cardIndex] as HTMLElement | undefined;
+    if (!cardElement) throw new Error("game card not rendered");
+
+    const open = vi.spyOn(window, "open").mockImplementation(() => null);
+    fireEvent.click(within(cardElement).getByRole("button", { name: label }));
+    expect(open).toHaveBeenCalledWith(vodGame.game.vodUrl, "_blank", "noopener,noreferrer");
+    expect(screen.queryByRole("link", { name: /^Game \d+: .+ versus .+$/ })).not.toBeInTheDocument();
+    open.mockRestore();
   });
 
   it("searches caster, team, and hero metadata within the selected day", () => {
@@ -108,7 +128,7 @@ describe("Riki VODs frontend", () => {
     expect(screen.getByRole("button", { name: "Mark this day unwatched" })).toBeInTheDocument();
     expect(document.querySelector(".progress-meter")?.textContent).toContain("12/12");
     expect(JSON.parse(window.localStorage.getItem("riki-vods-progress-v1") || "[]")).toHaveLength(
-      archive.matches.flatMap((match) => match.games).filter((game) => game.vodUrl).length,
+      archive.matches.flatMap((match) => match.games).length,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Mark this day unwatched" }));
@@ -156,7 +176,9 @@ describe("archive data helpers", () => {
     expect(screen.getByRole("heading", { name: "Friday, August 14", level: 2 })).toBeInTheDocument();
     expect(screen.getAllByRole("article", { name: / versus / })).toHaveLength(tiDayTwo?.matches.length ?? 0);
     expect(document.querySelectorAll(".game-card")).toHaveLength(tiDayTwoGameCards);
-    expect(screen.getAllByRole("link", { name: /Watch VOD for Game/ })).toHaveLength(tiDayTwoVodLinks);
+    expect(screen.getAllByRole("button", { name: /^Game \d+: .+ versus .+$/ })).toHaveLength(tiDayTwoGameCards);
+    expect(screen.getAllByRole("button", { name: /^Mark watched Game \d+ of .+ versus .+$/ })).toHaveLength(tiDayTwoGameCards);
+    expect(screen.queryAllByRole("link", { name: /^Game \d+: .+ versus .+$/ })).toHaveLength(0);
   });
 
   it("keeps the EWC final-day order and preserves the fifth BO5 game", () => {
@@ -171,10 +193,68 @@ describe("archive data helpers", () => {
   it("keeps generated data spoiler-safe and has a safe hero fallback", () => {
     expect(archive.matches).toHaveLength(12);
     expect(archive.matches.flatMap((match) => match.games)).toHaveLength(36);
-    expect(archives.flatMap((item) => item.matches.flatMap((match) => match.games)).every((game) => (
-      game.heroes.teamA.length === 5 && game.heroes.teamB.length === 5
-    ))).toBe(true);
+    const allGames = archives.flatMap((item) => item.matches.flatMap((match) => match.games));
+    expect(allGames.filter((game) => game.source === "concealed-fallback").length).toBeGreaterThan(0);
+    for (const game of allGames) {
+      if (game.source === "opendota") {
+        expect(game.heroes.teamA, `game ${game.number} (${game.matchId}) teamA picks`).toHaveLength(5);
+        expect(game.heroes.teamB, `game ${game.number} (${game.matchId}) teamB picks`).toHaveLength(5);
+      } else {
+        expect(game.vodUrl).toBeNull();
+        expect(game.heroes.teamA).toHaveLength(0);
+        expect(game.heroes.teamB).toHaveLength(0);
+      }
+    }
     expect(JSON.stringify(archives)).not.toMatch(/radiant_win|winner|duration|score/i);
     expect(fallbackHeroIconUrl("Crystal Maiden")).toContain("crystal_maiden.png");
+  });
+
+  it("reveals concealed games without leaking picks or VODs", () => {
+    renderAt(tiDayOneUrl);
+    const tiDayOne = archives.find((item) => item.tournament.id === "ti-2026" && item.date === "2026-08-13");
+    const concealedMatch = tiDayOne?.matches.find((match) => match.games.some((game) => game.source === "concealed-fallback"));
+    const concealedGame = concealedMatch?.games.find((game) => game.source === "concealed-fallback");
+    if (!concealedMatch || !concealedGame) throw new Error("TI day one must contain at least one concealed game");
+    const article = screen.getByRole("article", { name: `${concealedMatch.teamA} versus ${concealedMatch.teamB}` });
+    const cardElement = article.querySelectorAll(".game-card")[concealedGame.number - 1] as HTMLElement | undefined;
+    if (!cardElement) throw new Error(`game card ${concealedGame.number} not rendered`);
+    const card = within(cardElement);
+
+    expect(card.queryByText("This game was not played")).not.toBeInTheDocument();
+    fireEvent.click(card.getByRole("button", { name: `Game ${concealedGame.number}: ${concealedMatch.teamA} versus ${concealedMatch.teamB}` }));
+    expect(card.getByText("This game was not played")).toBeInTheDocument();
+
+    fireEvent.click(card.getByRole("button", { name: /Hero picks/ }));
+    expect(card.getByText("Hero picks are not available for this game.")).toBeInTheDocument();
+    expect(card.queryAllByRole("listitem")).toHaveLength(0);
+    expect(card.queryByRole("link", { name: /^Game \d+: .+ versus .+$/ })).not.toBeInTheDocument();
+
+    fireEvent.click(card.getByRole("button", { name: `Mark watched Game ${concealedGame.number} of ${concealedMatch.teamA} versus ${concealedMatch.teamB}` }));
+    expect(card.getByText("✓ WATCHED")).toBeInTheDocument();
+    expect(card.getByRole("button", { name: `Mark unwatched Game ${concealedGame.number} of ${concealedMatch.teamA} versus ${concealedMatch.teamB}` })).toBeInTheDocument();
+  });
+
+  it("reveals played games with a missing VOD through the same toggle", () => {
+    renderAt(tiDayOneUrl);
+    const tiDayOne = archives.find((item) => item.tournament.id === "ti-2026" && item.date === "2026-08-13");
+    const playedWithoutVod = tiDayOne?.matches
+      .flatMap((match) => match.games.filter((game) => game.source === "opendota" && !game.vodUrl).map((game) => ({ match, game })))
+      .at(0);
+    if (!playedWithoutVod) throw new Error("TI day one must contain a played game without a VOD");
+    const { match, game } = playedWithoutVod;
+    const article = screen.getByRole("article", { name: `${match.teamA} versus ${match.teamB}` });
+    const cardElement = article.querySelectorAll(".game-card")[game.number - 1] as HTMLElement | undefined;
+    if (!cardElement) throw new Error(`game card ${game.number} not rendered`);
+    const card = within(cardElement);
+
+    expect(screen.queryByText("VOD unavailable")).not.toBeInTheDocument();
+    expect(card.queryByText("This game was not played")).not.toBeInTheDocument();
+    fireEvent.click(card.getByRole("button", { name: `Game ${game.number}: ${match.teamA} versus ${match.teamB}` }));
+    expect(card.getByText("VOD unavailable")).toBeInTheDocument();
+    expect(card.queryByText("This game was not played")).not.toBeInTheDocument();
+
+    fireEvent.click(card.getByRole("button", { name: /Hero picks/ }));
+    expect(card.queryByText("Hero picks are not available for this game.")).not.toBeInTheDocument();
+    expect(card.getAllByRole("listitem")).toHaveLength(10);
   });
 });

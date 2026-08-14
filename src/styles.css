@@ -103,6 +103,7 @@ main { max-width:1440px; margin:0 auto; }
 .game-visual-link { color:inherit; text-decoration:none; cursor:pointer; transition:background .18s, box-shadow .18s; }
 .game-visual-link:hover { background:radial-gradient(circle at center,rgba(154,120,255,.2),transparent 42%),repeating-linear-gradient(135deg,#1d1929,#1d1929 4px,#15121e 4px,#15121e 8px); box-shadow:inset 0 0 0 1px rgba(154,120,255,.3); }
 .game-visual-link:focus-visible { outline:2px solid var(--acid); outline-offset:2px; }
+button.game-visual { border:0; padding:0; width:100%; }
 .fog-line { width:18%; height:1px; background:#353936; }
 .play-glyph { width:44px; height:44px; border-radius:50%; border:1px solid #514561; display:grid; place-items:center; color:var(--violet); font-size:14px; padding-left:3px; box-shadow:0 0 22px rgba(154,120,255,.16); transition:background .18s, color .18s, border-color .18s, transform .18s; }
 .game-visual-link:hover .play-glyph,.game-visual-link:focus-visible .play-glyph { background:var(--violet); color:#0d0914; border-color:var(--violet); transform:scale(1.08); }
@@ -117,6 +118,7 @@ main { max-width:1440px; margin:0 auto; }
 .picks-toggle span:last-child { color:var(--violet); }
 .picks-panel { display:grid; grid-template-columns:1fr 20px 1fr; align-items:start; gap:6px; padding:14px 0 2px; }
 .picks-panel>div:last-child { text-align:right; }
+.picks-note { grid-column:1/-1; margin:0; color:var(--muted); font-size:11px; }
 .picks-panel small { display:block; min-height:28px; color:#b7aec5; font-size:10px; font-weight:700; line-height:1.3; text-transform:uppercase; letter-spacing:.08em; }
 .picks-panel ul { list-style:none; padding:0; margin:7px 0 0; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px; }
 .hero-pick { aspect-ratio:16/10; min-width:0; position:relative; display:grid; place-items:center; overflow:hidden; border:1px solid #3b3446; background:#201a29; color:#aaa2bb; font:7px var(--font-geist-mono); }
