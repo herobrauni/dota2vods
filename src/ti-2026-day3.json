@@ -80,7 +80,7 @@
           "number": 2,
           "matchId": 8946231092,
           "source": "opendota",
-          "vodUrl": "https://youtu.be/jxMNLrFbdP8",
+          "vodUrl": "https://youtu.be/CPt0el5Y4ng",
           "heroes": {
             "teamA": [
               {
@@ -130,11 +130,54 @@
         },
         {
           "number": 3,
-          "source": "concealed-fallback",
+          "matchId": 8946288549,
+          "source": "opendota",
           "vodUrl": null,
           "heroes": {
-            "teamA": [],
-            "teamB": []
+            "teamA": [
+              {
+                "name": "Hoodwink",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/hoodwink.png"
+              },
+              {
+                "name": "Keeper of the Light",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/keeper_of_the_light.png"
+              },
+              {
+                "name": "Beastmaster",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/beastmaster.png"
+              },
+              {
+                "name": "Dragon Knight",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/dragon_knight.png"
+              },
+              {
+                "name": "Vengeful Spirit",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/vengefulspirit.png"
+              }
+            ],
+            "teamB": [
+              {
+                "name": "Lina",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/lina.png"
+              },
+              {
+                "name": "Mirana",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/mirana.png"
+              },
+              {
+                "name": "Tusk",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/tusk.png"
+              },
+              {
+                "name": "Tiny",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/tiny.png"
+              },
+              {
+                "name": "Dawnbreaker",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/dawnbreaker.png"
+              }
+            ]
           }
         }
       ]
@@ -211,7 +254,7 @@
           "number": 2,
           "matchId": 8946228708,
           "source": "opendota",
-          "vodUrl": "https://youtu.be/TQEHLkzjl4k",
+          "vodUrl": "https://youtu.be/g2spOvi2gBY",
           "heroes": {
             "teamA": [
               {
@@ -261,11 +304,54 @@
         },
         {
           "number": 3,
-          "source": "concealed-fallback",
+          "matchId": 8946285985,
+          "source": "opendota",
           "vodUrl": null,
           "heroes": {
-            "teamA": [],
-            "teamB": []
+            "teamA": [
+              {
+                "name": "Earth Spirit",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/earth_spirit.png"
+              },
+              {
+                "name": "Undying",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/undying.png"
+              },
+              {
+                "name": "Clinkz",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/clinkz.png"
+              },
+              {
+                "name": "Lion",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/lion.png"
+              },
+              {
+                "name": "Doom",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/doom_bringer.png"
+              }
+            ],
+            "teamB": [
+              {
+                "name": "Centaur Warrunner",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/centaur.png"
+              },
+              {
+                "name": "Hoodwink",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/hoodwink.png"
+              },
+              {
+                "name": "Winter Wyvern",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/winter_wyvern.png"
+              },
+              {
+                "name": "Phantom Lancer",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/phantom_lancer.png"
+              },
+              {
+                "name": "Void Spirit",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/void_spirit.png"
+              }
+            ]
           }
         }
       ]
@@ -274,7 +360,7 @@
       "id": "ti-2026-day3-1130533",
       "openDotaSeriesId": 1130533,
       "bestOf": 3,
-      "matchPageUrl": "https://liquipedia.net/dota2/index.php?title=Match:ID_mfiWqjJT5D_0007&action=edit&redlink=1",
+      "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5D_0007",
       "teamA": "Team Resilience",
       "teamB": "Team Yandex",
       "teamAId": 5017210,
@@ -394,7 +480,7 @@
           "number": 3,
           "matchId": 8946260898,
           "source": "opendota",
-          "vodUrl": null,
+          "vodUrl": "https://youtu.be/NvBcPIl0PqA",
           "heroes": {
             "teamA": [
               {
@@ -516,7 +602,7 @@
           "number": 2,
           "matchId": 8946227017,
           "source": "opendota",
-          "vodUrl": "https://youtu.be/TwtYLp2gmHI",
+          "vodUrl": "https://youtu.be/84Ws0dFD2SE",
           "heroes": {
             "teamA": [
               {
@@ -566,11 +652,54 @@
         },
         {
           "number": 3,
-          "source": "concealed-fallback",
+          "matchId": 8946283971,
+          "source": "opendota",
           "vodUrl": null,
           "heroes": {
-            "teamA": [],
-            "teamB": []
+            "teamA": [
+              {
+                "name": "Hoodwink",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/hoodwink.png"
+              },
+              {
+                "name": "Kez",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/kez.png"
+              },
+              {
+                "name": "Witch Doctor",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/witch_doctor.png"
+              },
+              {
+                "name": "Enigma",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/enigma.png"
+              },
+              {
+                "name": "Pangolier",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/pangolier.png"
+              }
+            ],
+            "teamB": [
+              {
+                "name": "Centaur Warrunner",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/centaur.png"
+              },
+              {
+                "name": "Undying",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/undying.png"
+              },
+              {
+                "name": "Dark Willow",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/dark_willow.png"
+              },
+              {
+                "name": "Drow Ranger",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/drow_ranger.png"
+              },
+              {
+                "name": "Earthshaker",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/earthshaker.png"
+              }
+            ]
           }
         }
       ]
@@ -581,5 +710,5 @@
     "liquipedia": "https://liquipedia.net/dota2/The_International/2026/Group_Stage",
     "attribution": "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia."
   },
-  "generatedAt": "2026-08-15T05:09:02.164Z"
+  "generatedAt": "2026-08-15T06:10:17.212Z"
 }
