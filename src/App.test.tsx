@@ -53,6 +53,36 @@ describe("Riki VODs frontend", () => {
     expect(screen.queryByText("Watch VOD ↗")).not.toBeInTheDocument();
   });
 
+  it("renders the spoiler-free Swiss bracket and feeds a revealed winner forward", () => {
+    renderAt("/tournaments/the-international-2026/bracket");
+
+    expect(screen.getByRole("heading", { name: "Road to the International", level: 1 })).toBeInTheDocument();
+    expect(screen.getAllByRole("article", { name: /^0-0 / })).toHaveLength(8);
+    expect(screen.queryAllByText("Waiting on prior result").length).toBeGreaterThan(0);
+    expect(screen.getByRole("link", { name: "Open VOD archive ↗" })).toHaveAttribute("href", tiDayOneUrl);
+    expect(screen.getAllByRole("link", { name: "View VODs ↗" })).toHaveLength(39);
+    expect(document.querySelectorAll(".bracket-outcome-card.waiting")).toHaveLength(6);
+    expect(screen.queryByText("WINNER")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Reveal winner for Team Falcons versus LGD Gaming" }));
+
+    expect(screen.getByText("WINNER")).toBeInTheDocument();
+    expect(screen.getAllByText("Team Falcons").length).toBeGreaterThan(1);
+    expect(document.querySelector(".bracket-progress")).toHaveTextContent("1/39 results revealed");
+  });
+
+  it("reveals a complete round without requiring one click per matchup", () => {
+    renderAt("/tournaments/the-international-2026/bracket");
+
+    const revealRoundOne = screen.getByRole("button", { name: "Reveal all ROUND 1 matchups" });
+    expect(revealRoundOne).not.toBeDisabled();
+    fireEvent.click(revealRoundOne);
+
+    expect(screen.getAllByText("WINNER")).toHaveLength(8);
+    expect(document.querySelector(".bracket-progress")).toHaveTextContent("8/39 results revealed");
+    expect(screen.getByRole("button", { name: "Reveal all ROUND 2 matchups" })).not.toBeDisabled();
+  });
+
   it("renders an identical pre-click interface for every game and opens the VOD on first click", () => {
     renderAt(tiDayOneUrl);
     expect(screen.queryAllByRole("link", { name: /^Game \d+: .+ versus .+$/ })).toHaveLength(0);

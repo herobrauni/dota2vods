@@ -14,6 +14,10 @@ leaves the device.
 Use the `Tournaments` navigation item to open the tournament picker. On an
 event page, the progress ring counts completed matches from the selected date
 only; it does not include matches from other archive days or tournaments.
+The TI 2026 event page also links to an interactive Swiss bracket. It starts with
+the eight 0-0 pairings; clicking a matchup reveals its real winner and unlocks
+that team's next record slot. Bracket results are sourced from the OpenDota game
+results while the UI keeps them hidden until each matchup is opened.
 
 ## Run the site
 
