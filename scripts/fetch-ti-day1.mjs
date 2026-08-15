@@ -251,13 +251,14 @@ export function assertSpoilerSafe(data) {
 }
 
 export async function fetchArchive(config = DEFAULT_CONFIG, options = {}) {
-  const { refreshLeague = false, validateDetails = false } = options;
+  const { refreshLeague = false, validateDetails = false, parser = null, page = null } = options;
   const liquipediaClient = new LiquipediaClient();
-  const parsedPage = await liquipediaClient.parsePage("The_International/2026/Group_Stage", {
+  const parsePageName = page ?? "The_International/2026/Group_Stage";
+  const parsedPage = await liquipediaClient.parsePage(parsePageName, {
     cacheFile: resolve(config.liquipediaCache),
     refresh: process.env.TI_REFRESH === "1" || options.refreshLiquipedia === true,
   });
-  const liquipedia = parseDayPage({
+  const liquipedia = (parser ?? parseDayPage)({
     html: parsedPage.text,
     page: parsedPage.title,
     date: config.liquipediaDate,
@@ -313,6 +314,7 @@ export async function fetchArchive(config = DEFAULT_CONFIG, options = {}) {
       matchIdPrefix: config.matchIdPrefix ?? config.id,
       date: config.date,
       stage: config.stage,
+      ...(config.sources ? { sources: config.sources } : {}),
     },
   });
   assertSpoilerSafe(data);

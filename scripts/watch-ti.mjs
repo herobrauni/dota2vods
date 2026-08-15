@@ -32,14 +32,18 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { JSDOM } from "jsdom";
-import { LiquipediaClient } from "./liquipedia.mjs";
+import { LiquipediaClient, parseDayPage, parseBracketDayPage } from "./liquipedia.mjs";
 import { fetchArchive, assertSpoilerSafe } from "./fetch-ti-day1.mjs";
 
 const ROOT = resolve(fileURLToPath(import.meta.url), "..", "..");
 const STATE_DIR = resolve(ROOT, ".cache", "ti-watch");
 const FINGERPRINT_FILE = resolve(STATE_DIR, "fingerprint.json");
-const LIQUIPEDIA_CACHE = resolve(STATE_DIR, "group-stage.parse.json");
-const PAGE = "The_International/2026/Group_Stage";
+const GROUP_STAGE_CACHE = resolve(STATE_DIR, "group-stage.parse.json");
+const MAIN_EVENT_CACHE = resolve(STATE_DIR, "main-event.parse.json");
+const PAGES = {
+  groupStage: { page: "The_International/2026/Group_Stage", cacheFile: GROUP_STAGE_CACHE, parser: parseDayPage },
+  mainEvent: { page: "The_International/2026/Main_Event", cacheFile: MAIN_EVENT_CACHE, parser: parseBracketDayPage },
+};
 const LEAGUE_ID = 19719;
 const USER_AGENT = "dota2vods/0.1 (https://github.com/herobrauni/dota2vods; brauni@brauni.dev)";
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -126,6 +130,26 @@ function dateLabelsOnPage(html) {
   return [...labels];
 }
 
+/**
+ * Bracket pages (Main Event) carry no date labels: each popup's schedule is a
+ * data-timestamp attribute (Unix seconds). Returns UTC dates of popups that
+ * have at least one completed game row — the same readiness signal
+ * parseBracketDayPage filters on.
+ */
+function scheduledDatesFromBracket(html) {
+  const document = new JSDOM(html).window.document;
+  const dates = new Set();
+  for (const popup of document.querySelectorAll(".brkts-popup")) {
+    const rows = [...popup.querySelectorAll(".brkts-popup-body-grid-row")]
+      .filter((row) => row.querySelector(".brkts-champion-icon"));
+    if (!rows.length) continue;
+    const timestamp = Number(popup.querySelector("[data-timestamp]")?.getAttribute("data-timestamp"));
+    if (!Number.isFinite(timestamp)) continue;
+    dates.add(new Date(timestamp * 1_000).toISOString().slice(0, 10));
+  }
+  return [...dates];
+}
+
 /** Read a committed snapshot without its generatedAt field. */
 function committedSnapshot(relativePath) {
   try {
@@ -162,17 +186,18 @@ async function main() {
   }
 
   const client = new LiquipediaClient();
-  const parsedPage = await client.parsePage(PAGE, { cacheFile: LIQUIPEDIA_CACHE, refresh: true });
+  const groupStage = await client.parsePage(PAGES.groupStage.page, { cacheFile: PAGES.groupStage.cacheFile, refresh: true });
+  const mainEvent = await client.parsePage(PAGES.mainEvent.page, { cacheFile: PAGES.mainEvent.cacheFile, refresh: true });
   const leagueMatches = await fetchLeagueMatches();
 
   const utcMatchDates = new Set(leagueMatches.map((match) => new Date(match.start_time * 1_000).toISOString().slice(0, 10)));
-  const dates = dateLabelsOnPage(parsedPage.text)
+  const dates = [...new Set([...dateLabelsOnPage(groupStage.text), ...scheduledDatesFromBracket(mainEvent.text)])]
     .filter((date) => utcMatchDates.has(date))
     .sort();
 
   const fingerprint = JSON.stringify({
     dates,
-    vods: vodLinksFromHtml(parsedPage.text),
+    vods: [...new Set([...vodLinksFromHtml(groupStage.text), ...vodLinksFromHtml(mainEvent.text)])],
     matchIds: leagueMatches.map((match) => match.match_id).sort((a, b) => a - b),
   });
 
@@ -180,32 +205,62 @@ async function main() {
     return; // silent: no new games or VODs
   }
 
+  // Which page owns which date? Group Stage: date labels in popups; Main
+  // Event: UTC timestamps of scheduled bracket matches with completed rows.
+  const groupStageDates = new Set(dateLabelsOnPage(groupStage.text));
+  const mainEventDates = new Set(scheduledDatesFromBracket(mainEvent.text));
+
   // Regenerate every publishable day. One retry pass absorbs transient
-  // OpenDota lag (e.g. an incompletely-parsed match detail mid-series).
+  // Liquipedia/OpenDota lag; a day that still fails is SKIPPED (warning to
+  // stderr) rather than aborting the run — other days still publish.
   const perDay = [];
+  const warnings = [];
   for (const date of dates) {
+    const source = mainEventDates.has(date) && !groupStageDates.has(date) ? PAGES.mainEvent : PAGES.groupStage;
     const id = `ti-2026-day${dayIndex(date)}`;
     const config = {
       id,
       date,
       liquipediaDate: liquipediaDateLabel(date),
-      stage: stageLabel(date),
+      stage: source === PAGES.mainEvent ? `Main Event · ${liquipediaDateLabel(date)}` : stageLabel(date),
       output: resolve(ROOT, "src", `${id}.json`),
       cache: resolve(ROOT, ".cache", id),
-      liquipediaCache: LIQUIPEDIA_CACHE,
+      liquipediaCache: source.cacheFile,
       matchIdPrefix: id,
+      ...(source === PAGES.mainEvent ? {
+        sources: {
+          opendota: "https://www.opendota.com/leagues/19719",
+          liquipedia: `https://liquipedia.net/dota2/${source.page.replaceAll(" ", "_")}`,
+          attribution: "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia.",
+        },
+      } : {}),
     };
-    const runOnce = async () => fetchArchive(config, { refreshLeague: true, refreshLiquipedia: false, validateDetails: true });
+    const runOnce = async () => fetchArchive(config, {
+      refreshLeague: true,
+      refreshLiquipedia: false,
+      validateDetails: true,
+      parser: source.parser,
+      page: source.page,
+    });
     let data;
     try {
       data = await runOnce();
     } catch (firstError) {
       console.error(`Regenerating ${id} failed once (${firstError.message}); retrying in 90s…`);
       await sleep(90_000);
-      data = await runOnce();
+      try {
+        data = await runOnce();
+      } catch (secondError) {
+        warnings.push(`${id}: kept committed snapshot (${secondError.message})`);
+        continue;
+      }
     }
     assertSpoilerSafe(data);
     perDay.push({ id, relative: `src/${id}.json`, data });
+  }
+
+  if (!perDay.length) {
+    fail(`TI 2026 watcher: no day could be regenerated.\n${warnings.join("\n")}`);
   }
 
   // Drop pure generatedAt churn: keep a regenerated file only when its
@@ -252,7 +307,8 @@ async function main() {
   run("git", ["push", "origin", "main"]);
   await mkdir(STATE_DIR, { recursive: true });
   await writeFile(FINGERPRINT_FILE, `${fingerprint}\n`);
-  report([`🏒 TI 2026 published to riki.vods:\n${lines.join("\n")}\nPushed — Cloudflare Pages deploy on its way.`]);
+  const warningLines = warnings.length ? `\n⚠ Skipped days (committed snapshot kept):\n${warnings.join("\n")}` : "";
+  report([`🏒 TI 2026 published to riki.vods:\n${lines.join("\n")}${warningLines}\nPushed — Cloudflare Pages deploy on its way.`]);
 }
 
 main().catch((error) => {

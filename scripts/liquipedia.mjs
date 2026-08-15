@@ -244,6 +244,55 @@ export function parseDayPage({ html, page = PAGE, date, revisionId = null }) {
 // Kept as a compatibility alias for the existing EWC importer and callers.
 export const parseDayOnePage = parseDayPage;
 
+/**
+ * Date-filtered variant for bracket pages (Main Event playoffs): keeps
+ * `.brkts-popup` matches whose scheduled timestamp (UTC) falls on `date`
+ * and that have at least one completed game row. Same non-result output
+ * shape as parseDayPage, so fetchArchive can join either identically.
+ */
+export function parseBracketDayPage({ html, page = "The_International/2026/Main_Event", date, revisionId = null }) {
+  if (!date) throw new Error("A Liquipedia date is required when parsing a bracket day");
+  const document = new JSDOM(html).window.document;
+  const matches = [];
+  for (const popup of document.querySelectorAll(".brkts-popup")) {
+    const teams = teamNames(popup);
+    const rows = [...popup.querySelectorAll(".brkts-popup-body-grid-row")]
+      .filter((row) => row.querySelector(".brkts-champion-icon"));
+    const matchScheduledAt = scheduledAt(popup);
+    if (teams.length !== 2 || !matchScheduledAt || !rows.length) continue;
+    if (matchScheduledAt.slice(0, 10) !== date) continue;
+    matches.push({
+      teams,
+      scheduledText: date,
+      scheduledAt: matchScheduledAt,
+      date,
+      stage: "Main Event",
+      matchPage: matchPageUrl(popup),
+      casters: casterNames(popup),
+      bestOf: extractBestOf(popup),
+      games: extractGames(popup),
+    });
+  }
+
+  const deduplicated = [];
+  const seen = new Set();
+  for (const match of matches) {
+    const key = `${match.teams.join(" vs ")}::${match.matchPage ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduplicated.push(match);
+  }
+
+  return {
+    source: "Liquipedia MediaWiki API action=parse",
+    attribution: `Data from Liquipedia, https://liquipedia.net/dota2/${page.replaceAll(" ", "_")}`,
+    page,
+    revisionId,
+    date,
+    matches: deduplicated,
+  };
+}
+
 export function parseBracketStages({ html, page }) {
   const document = new JSDOM(html).window.document;
   const matches = [];
