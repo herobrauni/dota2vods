@@ -1684,7 +1684,7 @@
           "number": 1,
           "matchId": 8946648249,
           "source": "opendota",
-          "vodUrl": "https://youtu.be/X5iSB8jnWuM",
+          "vodUrl": null,
           "heroes": {
             "teamA": [
               {
@@ -1788,7 +1788,7 @@
           "number": 3,
           "matchId": 8946889239,
           "source": "opendota",
-          "vodUrl": "https://youtu.be/X5iSB8jnWuM",
+          "vodUrl": "https://youtu.be/Kc7yYqXPygo",
           "heroes": {
             "teamA": [
               {
@@ -1842,7 +1842,7 @@
       "id": "ti-2026-day3-1130665",
       "openDotaSeriesId": 1130665,
       "bestOf": 3,
-      "matchPageUrl": "https://liquipedia.net/dota2/index.php?title=Match:ID_mfiWqjJT5E_0005&action=edit&redlink=1",
+      "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5E_0005",
       "teamA": "1w Team",
       "teamB": "Team Yandex",
       "teamAId": 10150413,
@@ -1858,7 +1858,7 @@
           "number": 1,
           "matchId": 8946735226,
           "source": "opendota",
-          "vodUrl": null,
+          "vodUrl": "https://youtu.be/jWnaOz34X0E",
           "heroes": {
             "teamA": [
               {
@@ -1910,7 +1910,7 @@
           "number": 2,
           "matchId": 8946872708,
           "source": "opendota",
-          "vodUrl": null,
+          "vodUrl": "https://youtu.be/wrAXUzD-aS4",
           "heroes": {
             "teamA": [
               {
@@ -1960,11 +1960,54 @@
         },
         {
           "number": 3,
-          "source": "concealed-fallback",
+          "matchId": 8947008125,
+          "source": "opendota",
           "vodUrl": null,
           "heroes": {
-            "teamA": [],
-            "teamB": []
+            "teamA": [
+              {
+                "name": "Keeper of the Light",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/keeper_of_the_light.png"
+              },
+              {
+                "name": "Earth Spirit",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/earth_spirit.png"
+              },
+              {
+                "name": "Bane",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/bane.png"
+              },
+              {
+                "name": "Io",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/wisp.png"
+              },
+              {
+                "name": "Storm Spirit",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/storm_spirit.png"
+              }
+            ],
+            "teamB": [
+              {
+                "name": "Doom",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/doom_bringer.png"
+              },
+              {
+                "name": "Winter Wyvern",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/winter_wyvern.png"
+              },
+              {
+                "name": "Snapfire",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/snapfire.png"
+              },
+              {
+                "name": "Rubick",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/rubick.png"
+              },
+              {
+                "name": "Tiny",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/tiny.png"
+              }
+            ]
           }
         }
       ]
@@ -2093,7 +2136,7 @@
           "number": 3,
           "matchId": 8946996385,
           "source": "opendota",
-          "vodUrl": null,
+          "vodUrl": "https://youtu.be/WiyuU-5xT80",
           "heroes": {
             "teamA": [
               {
@@ -2147,7 +2190,7 @@
       "id": "ti-2026-day3-1130710",
       "openDotaSeriesId": 1130710,
       "bestOf": 3,
-      "matchPageUrl": "https://liquipedia.net/dota2/index.php?title=Match:ID_mfiWqjJT5E_0002&action=edit&redlink=1",
+      "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_mfiWqjJT5E_0002",
       "teamA": "Nigma Galaxy",
       "teamB": "Team Spirit",
       "teamAId": 10136357,
@@ -2213,11 +2256,54 @@
         },
         {
           "number": 2,
-          "source": "concealed-fallback",
+          "matchId": 8947050343,
+          "source": "opendota",
           "vodUrl": null,
           "heroes": {
-            "teamA": [],
-            "teamB": []
+            "teamA": [
+              {
+                "name": "Ember Spirit",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/ember_spirit.png"
+              },
+              {
+                "name": "Largo",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/largo.png"
+              },
+              {
+                "name": "Dazzle",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/dazzle.png"
+              },
+              {
+                "name": "Clockwerk",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/rattletrap.png"
+              },
+              {
+                "name": "Nature's Prophet",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/furion.png"
+              }
+            ],
+            "teamB": [
+              {
+                "name": "Hoodwink",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/hoodwink.png"
+              },
+              {
+                "name": "Lone Druid",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/lone_druid.png"
+              },
+              {
+                "name": "Dark Willow",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/dark_willow.png"
+              },
+              {
+                "name": "Axe",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/axe.png"
+              },
+              {
+                "name": "Invoker",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/invoker.png"
+              }
+            ]
           }
         },
         {
@@ -2237,5 +2323,5 @@
     "liquipedia": "https://liquipedia.net/dota2/The_International/2026/Group_Stage",
     "attribution": "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia."
   },
-  "generatedAt": "2026-08-15T15:20:21.140Z"
+  "generatedAt": "2026-08-15T16:21:23.207Z"
 }
