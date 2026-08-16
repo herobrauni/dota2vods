@@ -595,7 +595,7 @@
           "number": 1,
           "matchId": 8948311007,
           "source": "opendota",
-          "vodUrl": null,
+          "vodUrl": "https://youtu.be/RvBa5f1CeVk",
           "heroes": {
             "teamA": [
               {
@@ -645,11 +645,54 @@
         },
         {
           "number": 2,
-          "source": "concealed-fallback",
-          "vodUrl": null,
+          "matchId": 8948420293,
+          "source": "opendota",
+          "vodUrl": "https://youtu.be/FlJIytLf_zU",
           "heroes": {
-            "teamA": [],
-            "teamB": []
+            "teamA": [
+              {
+                "name": "Centaur Warrunner",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/centaur.png"
+              },
+              {
+                "name": "Lina",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/lina.png"
+              },
+              {
+                "name": "Mirana",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/mirana.png"
+              },
+              {
+                "name": "Vengeful Spirit",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/vengefulspirit.png"
+              },
+              {
+                "name": "Magnus",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/magnataur.png"
+              }
+            ],
+            "teamB": [
+              {
+                "name": "Undying",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/undying.png"
+              },
+              {
+                "name": "Doom",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/doom_bringer.png"
+              },
+              {
+                "name": "Io",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/wisp.png"
+              },
+              {
+                "name": "Bounty Hunter",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/bounty_hunter.png"
+              },
+              {
+                "name": "Dragon Knight",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/dragon_knight.png"
+              }
+            ]
           }
         },
         {
@@ -669,5 +712,5 @@
     "liquipedia": "https://liquipedia.net/dota2/The_International/2026/Group_Stage",
     "attribution": "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia."
   },
-  "generatedAt": "2026-08-16T09:40:40.835Z"
+  "generatedAt": "2026-08-16T11:42:42.454Z"
 }
