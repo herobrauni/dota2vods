@@ -49,7 +49,7 @@ const tiVodsPath = "/tournaments/the-international-2026/2026-08-13";
 const resultByMatchId = bracketResults as Record<string, BracketResult>;
 
 function vodHrefForMatch(match: MatchRecord) {
-  const date = match.id.includes("day3") ? "2026-08-15" : match.id.includes("day2") ? "2026-08-14" : "2026-08-13";
+  const date = match.id.includes("day4") ? "2026-08-16" : match.id.includes("day3") ? "2026-08-15" : match.id.includes("day2") ? "2026-08-14" : "2026-08-13";
   const params = new URLSearchParams({ search: `${match.teamA} ${match.teamB}`, searchType: "teams" });
   return `/tournaments/the-international-2026/${date}?${params}`;
 }
@@ -135,6 +135,7 @@ function makeBracket(allMatches: MatchRecord[]): BracketColumn[] {
     { label: "ROUND 3", scores: ["2-0", "1-1", "0-2"] },
     { label: "ROUND 4", scores: ["3-0", "2-1", "1-2", "0-3"] },
     { label: "ROUND 5", scores: ["3-1", "2-2", "1-3"] },
+    { label: "ROUND 6", scores: ["3-2", "2-3"] },
   ];
 
   return columns.map((column) => {
@@ -164,8 +165,20 @@ function makeBracket(allMatches: MatchRecord[]): BracketColumn[] {
         ],
       };
     }
+    if (column.label === "ROUND 6") {
+      const qualifiedFromThreeTwo = [...outcomeRefs("3-2", "winner"), ...outcomeRefs("2-3", "winner")];
+      const eliminatedFromTwoThree = [...outcomeRefs("3-2", "loser"), ...outcomeRefs("2-3", "loser")];
+      return {
+        label: column.label,
+        groups: [
+          ...(qualifiedFromThreeTwo.length ? [{ label: "QUALIFIED", matches: [], outcomes: qualifiedFromThreeTwo, outcome: "qualified" as const }] : []),
+          ...scoreGroups,
+          ...(eliminatedFromTwoThree.length ? [{ label: "ELIMINATED", matches: [], outcomes: eliminatedFromTwoThree, outcome: "eliminated" as const }] : []),
+        ],
+      };
+    }
     return { label: column.label, groups: scoreGroups };
-  });
+  }).filter((column) => column.groups.length > 0);
 }
 
 function initials(team: BracketTeam) {
