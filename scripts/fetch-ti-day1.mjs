@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { LiquipediaClient, parseDayPage } from "./liquipedia.mjs";
+import { LiquipediaClient, parseDayPage, parseBracketDayPage } from "./liquipedia.mjs";
 
 const USER_AGENT = "dota2vods/0.1 (https://github.com/herobrauni/dota2vods; brauni@brauni.dev)";
 const DEFAULT_CACHE = resolve(".cache", "ti-2026");
@@ -264,7 +264,19 @@ export async function fetchArchive(config = DEFAULT_CONFIG, options = {}) {
     date: config.liquipediaDate,
     revisionId: parsedPage.revid ?? null,
   });
-  if (!liquipedia.matches.length) {
+  let liquipediaMatches = liquipedia.matches;
+  if (!liquipediaMatches.length) {
+    // Elimination Round / bracket-style days are not rendered as matchlists;
+    // fall back to the date-filtered bracket parser on the same page.
+    const bracket = parseBracketDayPage({
+      html: parsedPage.text,
+      page: parsedPage.title,
+      date: config.date,
+      revisionId: parsedPage.revid ?? null,
+    });
+    liquipediaMatches = bracket.matches;
+  }
+  if (!liquipediaMatches.length) {
     throw new Error(`No completed matches found for Liquipedia ${config.liquipediaDate}`);
   }
 
@@ -273,7 +285,7 @@ export async function fetchArchive(config = DEFAULT_CONFIG, options = {}) {
   const teams = await openDota.get(`/leagues/${LEAGUE_ID}/teams`, "opendota.teams.json");
   const heroes = await openDota.get("/constants/heroes", "opendota.heroes.json");
   const teamKeys = new Set(teams.map((team) => teamKey(team.name?.trim() ?? "")));
-  const selectedPairs = new Set(liquipedia.matches.map((match) => pairKey(...match.teams)));
+  const selectedPairs = new Set(liquipediaMatches.map((match) => pairKey(...match.teams)));
   const targetDate = config.date;
   const relevantMatches = matches.filter((match) => {
     const radiant = teams.find((team) => team.team_id === match.radiant_team_id)?.name?.trim();
@@ -282,7 +294,7 @@ export async function fetchArchive(config = DEFAULT_CONFIG, options = {}) {
       && selectedPairs.has(pairKey(radiant, dire))
       && new Date(match.start_time * 1_000).toISOString().slice(0, 10) === targetDate;
   });
-  const completedMatches = liquipedia.matches.filter((liquipediaMatch) => {
+  const completedMatches = liquipediaMatches.filter((liquipediaMatch) => {
     const key = pairKey(...liquipediaMatch.teams);
     return relevantMatches.some((match) => {
       const radiant = teams.find((team) => team.team_id === match.radiant_team_id)?.name?.trim();
