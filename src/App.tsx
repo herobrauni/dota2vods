@@ -15,7 +15,36 @@ import { SwissBracket } from "./SwissBracket";
 type SearchType = "all" | "teams" | "heroes" | "casters";
 
 const progressStorageKey = "riki-vods-progress-v1";
+const searchStorageKey = "riki-vods-search-v1";
+const searchQueryKey = "search";
+const searchTypeQueryKey = "searchType";
 const preferredTournamentId = "ti-2026";
+
+function isSearchType(value: unknown): value is SearchType {
+  return value === "all" || value === "teams" || value === "heroes" || value === "casters";
+}
+
+function getSavedSearch() {
+  let saved = { search: "", searchType: "all" as SearchType };
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(searchStorageKey) || "{}");
+    saved = {
+      search: typeof stored.search === "string" ? stored.search : "",
+      searchType: isSearchType(stored.searchType) ? stored.searchType : "all",
+    };
+  } catch {
+    // An unavailable sessionStorage should not prevent searching.
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const urlSearchType = params.get(searchTypeQueryKey);
+  const hasUrlSearch = params.has(searchQueryKey);
+  const hasUrlSearchType = params.has(searchTypeQueryKey);
+  return {
+    search: hasUrlSearch || hasUrlSearchType ? (hasUrlSearch ? params.get(searchQueryKey) ?? "" : "") : saved.search,
+    searchType: hasUrlSearchType ? (isSearchType(urlSearchType) ? urlSearchType : "all") : hasUrlSearch ? "all" : saved.searchType,
+  };
+}
 
 function cleanPathname(pathname: string) {
   const clean = pathname.replace(/\/+$/, "");
@@ -35,7 +64,7 @@ function usePathname() {
 function navigate(event: MouseEvent<HTMLAnchorElement>, href: string) {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   event.preventDefault();
-  window.history.pushState({}, "", href);
+  window.history.pushState({}, "", preserveSearchQuery(href));
   window.dispatchEvent(new PopStateEvent("popstate"));
   window.scrollTo({ top: 0 });
 }
@@ -77,6 +106,26 @@ function bracketPath(tournament: Tournament) {
   return `${tournamentPath(tournament)}/bracket`;
 }
 
+function preserveSearchQuery(href: string) {
+  const destination = new URL(href, window.location.href);
+  const current = new URL(window.location.href);
+  for (const key of [searchQueryKey, searchTypeQueryKey]) {
+    const value = current.searchParams.get(key);
+    if (value === null) destination.searchParams.delete(key);
+    else destination.searchParams.set(key, value);
+  }
+  return `${destination.pathname}${destination.search}${destination.hash}`;
+}
+
+function updateSearchQuery(search: string, searchType: SearchType) {
+  const url = new URL(window.location.href);
+  if (search.trim()) url.searchParams.set(searchQueryKey, search);
+  else url.searchParams.delete(searchQueryKey);
+  if (searchType === "all") url.searchParams.delete(searchTypeQueryKey);
+  else url.searchParams.set(searchTypeQueryKey, searchType);
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
 function formatDate(date: string, options: Intl.DateTimeFormatOptions) {
   return new Intl.DateTimeFormat("en-US", { timeZone: "UTC", ...options }).format(new Date(`${date}T12:00:00Z`));
 }
@@ -97,25 +146,38 @@ function matchSearchable(match: MatchRecord) {
   ].join(" ").toLowerCase();
 }
 
+function searchTerms(query: string) {
+  return query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+}
+
+function containsSearchTerms(value: string, terms: string[]) {
+  return terms.every((term) => value.includes(term));
+}
+
 function matchesForSearch(match: MatchRecord, query: string, searchType: SearchType) {
-  const normalized = query.trim().toLowerCase();
-  if (!normalized) return true;
+  const terms = searchTerms(query);
+  if (!terms.length) return true;
   const teams = `${match.teamA} ${match.teamB}`.toLowerCase();
   const heroes = match.games.flatMap((game) => [
     ...game.heroes.teamA.map((hero) => hero.name),
     ...game.heroes.teamB.map((hero) => hero.name),
   ]).join(" ").toLowerCase();
   const casters = match.casters.join(" ").toLowerCase();
-  if (searchType === "teams") return teams.includes(normalized);
-  if (searchType === "heroes") return heroes.includes(normalized);
-  if (searchType === "casters") return casters.includes(normalized);
-  return matchSearchable(match).includes(normalized);
+  if (searchType === "teams") return containsSearchTerms(teams, terms);
+  if (searchType === "heroes") return containsSearchTerms(heroes, terms);
+  if (searchType === "casters") return containsSearchTerms(casters, terms);
+  return containsSearchTerms(matchSearchable(match), terms);
 }
 
-function gameHasHeroSearchMatch(game: GameLink, query: string, searchType: SearchType) {
-  if (!query.trim() || searchType === "teams" || searchType === "casters") return false;
-  const normalized = query.trim().toLowerCase();
-  return [...game.heroes.teamA, ...game.heroes.teamB].some((hero) => hero.name.toLowerCase().includes(normalized));
+function gameHasHeroSearchMatch(match: MatchRecord, game: GameLink, query: string, searchType: SearchType) {
+  const terms = searchTerms(query);
+  if (!terms.length || searchType === "teams" || searchType === "casters") return false;
+  const teamTerms = `${match.teamA} ${match.teamB}`.toLowerCase();
+  const heroTerms = [...game.heroes.teamA, ...game.heroes.teamB].map((hero) => hero.name.toLowerCase()).join(" ");
+  const relevantTerms = terms.filter((term) => searchType === "heroes" || !teamTerms.includes(term));
+  return searchType === "heroes"
+    ? containsSearchTerms(heroTerms, relevantTerms)
+    : relevantTerms.some((term) => heroTerms.includes(term));
 }
 
 function initials(team: string) {
@@ -181,7 +243,7 @@ function MatchCard({ match, index, watched, expandedPicks, search, searchType, o
     <div className="series-meta"><div><span className="series-time">{String(index + 1).padStart(2, "0")}</span><span className="series-stage">{match.casters.length ? `On the call · ${match.casters.join(" + ")}` : "Caster information unavailable"}</span></div><button type="button" onClick={onCatchUp}>{complete ? "Match watched" : "Mark match watched"}</button></div>
     <div className="matchup"><div className="team"><TeamMark name={match.teamA} logoUrl={match.teamALogoUrl} /><strong>{match.teamA}</strong></div><span className="versus">VS</span><div className="team team-right"><strong>{match.teamB}</strong><TeamMark name={match.teamB} logoUrl={match.teamBLogoUrl} alt /></div></div>
     <div className="game-grid">
-      {match.games.map((game) => <GameCard key={game.number} match={match} game={game} watched={watched.has(gameKey(match, game))} expanded={expandedPicks.has(gameKey(match, game))} heroSearchMatch={gameHasHeroSearchMatch(game, search, searchType)} onToggleWatched={() => onToggleWatched(gameKey(match, game))} onTogglePicks={() => onTogglePicks(gameKey(match, game))} />)}
+      {match.games.map((game) => <GameCard key={game.number} match={match} game={game} watched={watched.has(gameKey(match, game))} expanded={expandedPicks.has(gameKey(match, game))} heroSearchMatch={gameHasHeroSearchMatch(match, game, search, searchType)} onToggleWatched={() => onToggleWatched(gameKey(match, game))} onTogglePicks={() => onTogglePicks(gameKey(match, game))} />)}
     </div>
     <div className="series-footer"><span>{watchedCount}/{match.games.length} games marked watched</span><span>Progress stays on this device</span></div>
   </article>;
@@ -225,8 +287,9 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
   const pathname = usePathname();
   const [watched, setWatched] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
-  const [search, setSearch] = useState("");
-  const [searchType, setSearchType] = useState<SearchType>("all");
+  const [savedSearch] = useState(getSavedSearch);
+  const [search, setSearch] = useState(savedSearch.search);
+  const [searchType, setSearchType] = useState<SearchType>(savedSearch.searchType);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [howOpen, setHowOpen] = useState(false);
   const [expandedPicks, setExpandedPicks] = useState<string[]>([]);
@@ -261,7 +324,7 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
 
   useEffect(() => {
     if (routeIsValid) return;
-    window.history.replaceState({}, "", canonicalPath);
+    window.history.replaceState({}, "", preserveSearchQuery(canonicalPath));
     window.dispatchEvent(new PopStateEvent("popstate"));
   }, [routeIsValid, canonicalPath]);
 
@@ -283,6 +346,17 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
       // A full or unavailable localStorage keeps working for this session.
     }
   }, [watched, hydrated]);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(searchStorageKey, JSON.stringify({ search, searchType }));
+    } catch {
+      // An unavailable sessionStorage should not prevent searching.
+    }
+    const nextHref = updateSearchQuery(search, searchType);
+    const currentHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextHref !== currentHref) window.history.replaceState(window.history.state, "", nextHref);
+  }, [search, searchType]);
 
   const filteredMatches = useMemo(() => dateMatches.filter((match) => matchesForSearch(match, search, searchType)), [dateMatches, search, searchType]);
   const watchedSet = useMemo(() => new Set(watched), [watched]);
@@ -320,7 +394,7 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
   }
 
   function selectDate(date: string) {
-    window.history.pushState({}, "", datePath(selectedTournament, date));
+    window.history.pushState({}, "", preserveSearchQuery(datePath(selectedTournament, date)));
     window.dispatchEvent(new PopStateEvent("popstate"));
     window.scrollTo({ top: 0 });
   }

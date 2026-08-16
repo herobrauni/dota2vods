@@ -48,6 +48,12 @@ const bracketStorageKey = "riki-ti-2026-bracket-reveals-v1";
 const tiVodsPath = "/tournaments/the-international-2026/2026-08-13";
 const resultByMatchId = bracketResults as Record<string, BracketResult>;
 
+function vodHrefForMatch(match: MatchRecord) {
+  const date = match.id.includes("day3") ? "2026-08-15" : match.id.includes("day2") ? "2026-08-14" : "2026-08-13";
+  const params = new URLSearchParams({ search: `${match.teamA} ${match.teamB}`, searchType: "teams" });
+  return `/tournaments/the-international-2026/${date}?${params}`;
+}
+
 function teamFromMatch(match: MatchRecord, side: "A" | "B"): BracketTeam {
   return {
     id: String(side === "A" ? match.teamAId : match.teamBId),
@@ -89,7 +95,7 @@ function makeBracket(allMatches: MatchRecord[]): BracketColumn[] {
       score: `${scoreA.wins}-${scoreA.losses}`,
       slots: [slotA, slotB],
       actualWinnerId: String(bracketResult.winnerId),
-      vodHref: `/tournaments/the-international-2026/${source.id.includes("day3") ? "2026-08-15" : source.id.includes("day2") ? "2026-08-14" : "2026-08-13"}`,
+      vodHref: vodHrefForMatch(source),
     });
 
     scores.set(source.teamAId, {

@@ -14,6 +14,7 @@ const tiDayTwoGameCards = tiDayTwo?.matches.flatMap((match) => match.games).leng
 
 const tiDayOneUrl = "/tournaments/the-international-2026/2026-08-13";
 const tiDayTwoUrl = "/tournaments/the-international-2026/2026-08-14";
+const tiDayThreeUrl = "/tournaments/the-international-2026/2026-08-15";
 const ewcDayOneUrl = "/tournaments/esports-world-cup-2026/2026-07-07";
 
 function renderAt(pathname: string) {
@@ -24,6 +25,7 @@ function renderAt(pathname: string) {
 beforeEach(() => {
   window.history.replaceState({}, "", "/");
   window.localStorage.clear();
+  window.sessionStorage.clear();
   vi.spyOn(window, "scrollTo").mockImplementation(() => undefined);
 });
 
@@ -60,7 +62,12 @@ describe("Riki VODs frontend", () => {
     expect(screen.getAllByRole("article", { name: /^0-0 / })).toHaveLength(8);
     expect(screen.queryAllByText("Waiting on prior result").length).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: "Open VOD archive ↗" })).toHaveAttribute("href", tiDayOneUrl);
-    expect(screen.getAllByRole("link", { name: "View VODs ↗" })).toHaveLength(39);
+    const vodLinks = screen.getAllByRole("link", { name: "View VODs ↗" });
+    expect(vodLinks).toHaveLength(39);
+    const firstVodUrl = new URL(vodLinks[0].getAttribute("href") || "", window.location.origin);
+    expect(firstVodUrl.pathname).toBe(tiDayOneUrl);
+    expect(firstVodUrl.searchParams.get("search")).toBe("Team Falcons LGD Gaming");
+    expect(firstVodUrl.searchParams.get("searchType")).toBe("teams");
     expect(document.querySelectorAll(".bracket-outcome-card.waiting")).toHaveLength(6);
     expect(screen.queryByText("WINNER")).not.toBeInTheDocument();
 
@@ -118,6 +125,74 @@ describe("Riki VODs frontend", () => {
     fireEvent.change(input, { target: { value: "Huskar" } });
     expect(screen.getAllByRole("article", { name: / versus / })).toHaveLength(3);
     expect(screen.getByText(/safe result/)).toBeInTheDocument();
+  });
+
+  it("matches every search term across team and hero metadata", () => {
+    renderAt(tiDayOneUrl);
+    fireEvent.change(screen.getByRole("textbox", { name: "Search VODs" }), { target: { value: "nigma spirit" } });
+
+    expect(screen.getByRole("article", { name: "1w Team versus Nigma Galaxy" })).toBeInTheDocument();
+    expect(screen.getByRole("article", { name: "Nigma Galaxy versus OG" })).toBeInTheDocument();
+    expect(document.querySelectorAll(".hero-search-match").length).toBeGreaterThan(0);
+  });
+
+  it("matches reversed team names from a bracket VOD search", () => {
+    renderAt(tiDayThreeUrl);
+    fireEvent.change(screen.getByRole("textbox", { name: "Search VODs" }), { target: { value: "Team spirit nigma" } });
+
+    expect(screen.getByRole("article", { name: "Nigma Galaxy versus Team Spirit" })).toBeInTheDocument();
+  });
+
+  it("restores a shared URL's search and filter and keeps them in the URL", () => {
+    const view = renderAt(`${tiDayOneUrl}?search=Team%20Falcons&searchType=teams`);
+
+    expect(screen.getByRole("textbox", { name: "Search VODs" })).toHaveValue("Team Falcons");
+    expect(screen.getByRole("button", { name: "teams" })).toHaveClass("selected");
+    expect(screen.getByRole("article", { name: "Team Falcons versus LGD Gaming" })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Search VODs" }), { target: { value: "Huskar" } });
+    fireEvent.click(screen.getByRole("button", { name: "heroes" }));
+
+    const params = new URLSearchParams(window.location.search);
+    expect(params.get("search")).toBe("Huskar");
+    expect(params.get("searchType")).toBe("heroes");
+
+    view.unmount();
+    renderAt(`${tiDayOneUrl}?search=Team%20Falcons&searchType=teams`);
+    expect(screen.getByRole("textbox", { name: "Search VODs" })).toHaveValue("Team Falcons");
+    expect(screen.getByRole("button", { name: "teams" })).toHaveClass("selected");
+  });
+
+  it("preserves the filter query while changing archive dates", () => {
+    renderAt(`${tiDayOneUrl}?search=Falcons&searchType=teams`);
+
+    fireEvent.click(screen.getByRole("button", { name: /Aug 14/ }));
+
+    expect(window.location.pathname).toBe(tiDayTwoUrl);
+    expect(window.location.search).toBe("?search=Falcons&searchType=teams");
+  });
+
+  it("keeps the active filter after returning from a VOD", () => {
+    const view = renderAt(tiDayOneUrl);
+    const input = screen.getByRole("textbox", { name: "Search VODs" });
+    fireEvent.change(input, { target: { value: "Team Falcons" } });
+    fireEvent.click(screen.getByRole("button", { name: "teams" }));
+
+    const match = archive.matches.find((item) => item.teamA === "Team Falcons");
+    const game = match?.games.find((item) => item.vodUrl);
+    if (!match || !game) throw new Error("Team Falcons must contain a game with a VOD");
+    const article = screen.getByRole("article", { name: `${match.teamA} versus ${match.teamB}` });
+    const card = within(article).getAllByRole("button", { name: /^Game \d+: .+ versus .+$/ })[game.number - 1];
+    const open = vi.spyOn(window, "open").mockImplementation(() => null);
+    fireEvent.click(card);
+    view.unmount();
+    renderAt(tiDayOneUrl);
+
+    expect(screen.getByRole("textbox", { name: "Search VODs" })).toHaveValue("Team Falcons");
+    expect(screen.getByRole("button", { name: "teams" })).toHaveClass("selected");
+    expect(screen.getByRole("article", { name: `${match.teamA} versus ${match.teamB}` })).toBeInTheDocument();
+    expect(open).toHaveBeenCalledWith(game.vodUrl, "_blank", "noopener,noreferrer");
+    open.mockRestore();
   });
 
   it("highlights only the games containing a searched hero", () => {
