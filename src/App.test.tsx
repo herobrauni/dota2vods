@@ -63,19 +63,19 @@ describe("Riki VODs frontend", () => {
     expect(screen.queryAllByText("Waiting on prior result").length).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: "Open VOD archive ↗" })).toHaveAttribute("href", tiDayOneUrl);
     const vodLinks = screen.getAllByRole("link", { name: "View VODs ↗" });
-    expect(vodLinks).toHaveLength(39);
+    expect(vodLinks).toHaveLength(44);
     const firstVodUrl = new URL(vodLinks[0].getAttribute("href") || "", window.location.origin);
     expect(firstVodUrl.pathname).toBe(tiDayOneUrl);
     expect(firstVodUrl.searchParams.get("search")).toBe("Team Falcons LGD Gaming");
     expect(firstVodUrl.searchParams.get("searchType")).toBe("teams");
-    expect(document.querySelectorAll(".bracket-outcome-card.waiting")).toHaveLength(6);
+    expect(document.querySelectorAll(".bracket-outcome-card.waiting")).toHaveLength(16);
     expect(screen.queryByText("WINNER")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Reveal winner for Team Falcons versus LGD Gaming" }));
 
     expect(screen.getByText("WINNER")).toBeInTheDocument();
     expect(screen.getAllByText("Team Falcons").length).toBeGreaterThan(1);
-    expect(document.querySelector(".bracket-progress")).toHaveTextContent("1/39 results revealed");
+    expect(document.querySelector(".bracket-progress")).toHaveTextContent("1/44 results revealed");
   });
 
   it("reveals a complete round without requiring one click per matchup", () => {
@@ -86,8 +86,27 @@ describe("Riki VODs frontend", () => {
     fireEvent.click(revealRoundOne);
 
     expect(screen.getAllByText("WINNER")).toHaveLength(8);
-    expect(document.querySelector(".bracket-progress")).toHaveTextContent("8/39 results revealed");
+    expect(document.querySelector(".bracket-progress")).toHaveTextContent("8/44 results revealed");
     expect(screen.getByRole("button", { name: "Reveal all ROUND 2 matchups" })).not.toBeDisabled();
+  });
+
+  it("renders the elimination round with qualified and eliminated outcome cards", () => {
+    renderAt("/tournaments/the-international-2026/bracket");
+
+    expect(screen.getByText("ROUND 6")).toBeInTheDocument();
+    expect(screen.getAllByRole("article", { name: /^3-2 / })).toHaveLength(5);
+    expect(document.querySelectorAll(".bracket-group.qualified .bracket-outcome-card")).toHaveLength(8);
+    expect(document.querySelectorAll(".bracket-group.eliminated .bracket-outcome-card")).toHaveLength(8);
+
+    const dayFourVod = screen.getAllByRole("link", { name: "View VODs ↗" }).find((link) => decodeURIComponent((link.getAttribute("href") || "").replaceAll("+", " ")).includes("Team Falcons Vici Gaming"));
+    expect(dayFourVod?.getAttribute("href")).toContain("/2026-08-16?");
+
+    for (const round of [1, 2, 3, 4, 5, 6]) {
+      fireEvent.click(screen.getByRole("button", { name: `Reveal all ROUND ${round} matchups` }));
+    }
+
+    expect(document.querySelectorAll(".bracket-outcome-card.filled")).toHaveLength(16);
+    expect(document.querySelector(".bracket-progress")).toHaveTextContent("44/44 results revealed");
   });
 
   it("renders an identical pre-click interface for every game and opens the VOD on first click", () => {
