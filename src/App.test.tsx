@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App, { getMatchesForDate, getTournamentDates } from "./App";
 import { archive, archives, fallbackHeroIconUrl, matches, tournaments } from "./vods";
+import { normalizeTeamName, playoffSourcePairs } from "./PlayoffsBracket";
 
 // Expected TI dates are derived from the snapshot files themselves so growing
 // the archive (a new ti-2026-dayN.json) never breaks this suite.
@@ -87,7 +88,17 @@ describe("Riki VODs frontend", () => {
     expect(screen.getByText("Lower bracket")).toBeInTheDocument();
     expect(screen.getByRole("article", { name: "Iron Wing versus Team Spirit" })).toHaveClass("archived");
     expect(screen.getByRole("link", { name: "Open Main Event VODs ↗" })).toHaveAttribute("href", "/tournaments/the-international-2026/2026-08-20");
-    expect(screen.getAllByRole("link", { name: "Open VODs ↗" })).toHaveLength(1);
+    // One "Open VODs" link per archived playoff series: derive the expected
+    // count from the snapshots + bracket source pairs so the archive can grow
+    // (more series published for the same day) without breaking this suite.
+    const mainEventSeries = archives
+      .filter((item) => item.tournament.id === "ti-2026" && item.stage.startsWith("Main Event"))
+      .flatMap((item) => item.matches);
+    const expectedVodLinks = playoffSourcePairs.filter((pair) => mainEventSeries.some((match) =>
+      [match.teamA, match.teamB].map(normalizeTeamName).sort().join("|") === pair.map(normalizeTeamName).sort().join("|"),
+    )).length;
+    expect(expectedVodLinks).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: "Open VODs ↗" })).toHaveLength(expectedVodLinks);
     expect(screen.queryByText("WINNER")).not.toBeInTheDocument();
     expect(screen.queryByText(/\d+[:-]\d+/)).not.toBeInTheDocument();
   });

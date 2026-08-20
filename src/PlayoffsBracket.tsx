@@ -93,6 +93,15 @@ const lowerRounds: PlayoffRound[] = [
 
 const allRounds = [...rounds, ...lowerRounds];
 const totalMatches = allRounds.reduce((total, round) => total + round.matches.length, 0);
+
+// Matchups with concrete team slots (later rounds gain sourcePairs once their
+// participants are known). Exported so tests can derive expectations from the
+// archive instead of hardcoding counts that break whenever it grows.
+export const playoffSourcePairs: [string, string][] = allRounds
+  .flatMap((round) => round.matches)
+  .map((match) => match.sourcePair)
+  .filter((pair): pair is [string, string] => Boolean(pair));
+
 const knownTeamNames = new Set([
   "Iron Wing",
   "Team Spirit",
@@ -104,10 +113,11 @@ const knownTeamNames = new Set([
   "Team Falcons",
 ]);
 
-function normalizeTeamName(name: string) {
+export function normalizeTeamName(name: string) {
   const normalized = name.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   if (normalized === "1w team" || normalized === "1w") return "iron wing";
   if (normalized === "boomboys" || normalized === "bb team") return "betboom team";
+  if (normalized === "pvision" || normalized === "team vision") return "parivision";
   return normalized;
 }
 

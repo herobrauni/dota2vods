@@ -27,10 +27,10 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { JSDOM } from "jsdom";
 import { LiquipediaClient, parseDayPage, parseBracketDayPage } from "./liquipedia.mjs";
 import { fetchArchive, assertSpoilerSafe } from "./fetch-ti-day1.mjs";
@@ -50,12 +50,56 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// --- Spoiler-safe output -----------------------------------------------------
+// Cron failure alerts are delivered to Telegram verbatim, and tool output can
+// quote matchups (vitest diffs quote test source; pipeline errors quote
+// Liquipedia series names). Redact every known participant name at the
+// process boundary so no alert can ever spoil a pairing.
+const BRACKET_TEAM_NAMES = [ // keep in sync with knownTeamNames in src/PlayoffsBracket.tsx
+  "Iron Wing", "Team Spirit", "PARIVISION", "BetBoom Team",
+  "Team Liquid", "Team Yandex", "Nigma Galaxy", "Team Falcons",
+];
+const TEAM_ALIAS_NAMES = [ // keep in sync with teamAliases in scripts/fetch-ti-day1.mjs
+  "1w team", "1w", "iron wing", "betboom team", "bb team", "boomboys",
+  "l1ga team", "l1 team", "huligani", "parivision", "pvision", "team vision",
+  "power rangers", "powerrangers", "level up", "level up esports",
+  "playtime", "ptime", "rune eaters esports", "rune eaters",
+];
+
+function spoilerTerms() {
+  const names = new Set([...BRACKET_TEAM_NAMES, ...TEAM_ALIAS_NAMES]);
+  const srcDir = resolve(ROOT, "src");
+  for (const fileName of readdirSync(srcDir)) {
+    if (!/^ti-2026-day\d+\.json$/.test(fileName) && fileName !== "ewc-2026.json") continue;
+    try {
+      const data = JSON.parse(readFileSync(resolve(srcDir, fileName), "utf8"));
+      for (const day of [data, ...(Array.isArray(data?.archives) ? data.archives : [])]) {
+        for (const match of day?.matches ?? []) {
+          if (typeof match?.teamA === "string") names.add(match.teamA);
+          if (typeof match?.teamB === "string") names.add(match.teamB);
+        }
+      }
+    } catch {
+      // A malformed snapshot must never break alert redaction.
+    }
+  }
+  return [...names]
+    .sort((left, right) => right.length - left.length)
+    .map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+}
+
+let spoilerPattern = null;
+export function redactSpoilers(text) {
+  spoilerPattern ??= new RegExp(`\\b(${spoilerTerms().join("|")})\\b`, "gi");
+  return text.replace(spoilerPattern, "[team]");
+}
+
 function report(lines) {
-  process.stdout.write(`${Array.isArray(lines) ? lines.join("\n") : lines}\n`);
+  process.stdout.write(`${redactSpoilers(Array.isArray(lines) ? lines.join("\n") : lines)}\n`);
 }
 
 function fail(message) {
-  process.stderr.write(`${message}\n`);
+  process.stderr.write(`${redactSpoilers(message)}\n`);
   process.exit(1);
 }
 
@@ -246,7 +290,7 @@ async function main() {
     try {
       data = await runOnce();
     } catch (firstError) {
-      console.error(`Regenerating ${id} failed once (${firstError.message}); retrying in 90s…`);
+      console.error(redactSpoilers(`Regenerating ${id} failed once (${firstError.message}); retrying in 90s…`));
       await sleep(90_000);
       try {
         data = await runOnce();
@@ -293,8 +337,15 @@ async function main() {
   });
 
   // Gate the publish on tests + build.
-  run("npm", ["test"]);
-  run("npm", ["run", "build"]);
+  try {
+    run("npm", ["test"]);
+    run("npm", ["run", "build"]);
+  } catch (error) {
+    // Leave the tree clean so a gate failure does not block the next hourly
+    // run at the uncommitted-changes check.
+    run("git", ["checkout", "--", "src/ti-2026-day*.json"]);
+    throw error;
+  }
 
   const message = ["TI 2026 archive update", "", ...lines].join("\n");
   if (dryRun) {
@@ -311,6 +362,9 @@ async function main() {
   report([`🏒 TI 2026 published to riki.vods:\n${lines.join("\n")}${warningLines}\nPushed — Cloudflare Pages deploy on its way.`]);
 }
 
-main().catch((error) => {
-  fail(`TI 2026 watcher failed: ${error.message}`);
-});
+const isDirectRun = import.meta.url === pathToFileURL(process.argv[1] ?? "").href;
+if (isDirectRun) {
+  main().catch((error) => {
+    fail(`TI 2026 watcher failed: ${error.message}`);
+  });
+}
