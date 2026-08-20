@@ -12,7 +12,7 @@
       "id": "ti-2026-day8-1132142",
       "openDotaSeriesId": 1132142,
       "bestOf": 3,
-      "matchPageUrl": "https://liquipedia.net/dota2/index.php?title=Match:ID_TI2026Main_R01-M001&action=edit&redlink=1",
+      "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_TI2026Main_R01-M001",
       "teamA": "Iron Wing",
       "teamB": "Team Spirit",
       "teamAId": 10150413,
@@ -80,7 +80,7 @@
           "number": 2,
           "matchId": 8955247801,
           "source": "opendota",
-          "vodUrl": "https://youtu.be/unkBk7OuNyw",
+          "vodUrl": "https://youtu.be/P4061DutiZE",
           "heroes": {
             "teamA": [
               {
@@ -145,5 +145,5 @@
     "liquipedia": "https://liquipedia.net/dota2/The_International/2026/Main_Event",
     "attribution": "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia."
   },
-  "generatedAt": "2026-08-20T05:14:51.644Z"
+  "generatedAt": "2026-08-20T07:16:51.824Z"
 }
