@@ -1,0 +1,106 @@
+{
+  "tournament": {
+    "id": "ti-2026",
+    "slug": "the-international-2026",
+    "name": "The International 2026",
+    "shortName": "TI 2026"
+  },
+  "date": "2026-08-20",
+  "stage": "Main Event · August 20, 2026",
+  "matches": [
+    {
+      "id": "ti-2026-day8-null",
+      "openDotaSeriesId": null,
+      "bestOf": 3,
+      "matchPageUrl": "https://liquipedia.net/dota2/index.php?title=Match:ID_TI2026Main_R01-M001&action=edit&redlink=1",
+      "teamA": "Iron Wing",
+      "teamB": "Team Spirit",
+      "teamAId": 10150413,
+      "teamBId": 7119388,
+      "teamALogoUrl": "https://cdn.steamusercontent.com/ugc/16903873521422862552/02513782FE03E7A567B8B8955A0DEF415EF2B624/",
+      "teamBLogoUrl": "https://cdn.steamusercontent.com/ugc/1839179120711951766/CD7E0885CB527334205CC7885E9C101B7BC17702/",
+      "casters": [
+        "Lyrical",
+        "Trent"
+      ],
+      "games": [
+        {
+          "number": 1,
+          "matchId": 8955197224,
+          "source": "opendota",
+          "vodUrl": null,
+          "heroes": {
+            "teamA": [
+              {
+                "name": "Invoker",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/invoker.png"
+              },
+              {
+                "name": "Hoodwink",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/hoodwink.png"
+              },
+              {
+                "name": "Ring Master",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/ringmaster.png"
+              },
+              {
+                "name": "Doom",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/doom_bringer.png"
+              },
+              {
+                "name": "Kez",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/kez.png"
+              }
+            ],
+            "teamB": [
+              {
+                "name": "Undying",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/undying.png"
+              },
+              {
+                "name": "Pangolier",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/pangolier.png"
+              },
+              {
+                "name": "Windranger",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/windrunner.png"
+              },
+              {
+                "name": "Lone Druid",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/lone_druid.png"
+              },
+              {
+                "name": "Tusk",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/tusk.png"
+              }
+            ]
+          }
+        },
+        {
+          "number": 2,
+          "source": "concealed-fallback",
+          "vodUrl": null,
+          "heroes": {
+            "teamA": [],
+            "teamB": []
+          }
+        },
+        {
+          "number": 3,
+          "source": "concealed-fallback",
+          "vodUrl": null,
+          "heroes": {
+            "teamA": [],
+            "teamB": []
+          }
+        }
+      ]
+    }
+  ],
+  "sources": {
+    "opendota": "https://www.opendota.com/leagues/19719",
+    "liquipedia": "https://liquipedia.net/dota2/The_International/2026/Main_Event",
+    "attribution": "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia."
+  },
+  "generatedAt": "2026-08-20T04:13:52.989Z"
+}
