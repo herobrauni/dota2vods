@@ -19,6 +19,11 @@ the eight 0-0 pairings; clicking a matchup reveals its real winner and unlocks
 that team's next record slot. Bracket results are sourced from the OpenDota game
 results while the UI keeps them hidden until each matchup is opened.
 
+The TI 2026 event page also links to a separate spoiler-safe Main Event playoffs
+bracket at `/tournaments/the-international-2026/playoffs`. It shows the eight-team
+double-elimination path and links each archived series back to its matching VOD
+day without exposing scores or winners.
+
 ## Run the site
 
 ```bash

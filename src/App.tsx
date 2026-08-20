@@ -11,6 +11,7 @@ import {
   type Tournament,
 } from "./vods";
 import { SwissBracket } from "./SwissBracket";
+import { PlayoffsBracket } from "./PlayoffsBracket";
 
 type SearchType = "all" | "teams" | "heroes" | "casters";
 
@@ -300,8 +301,9 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
   const routeTournament = routeParts[0] === "tournaments" ? tournaments.find((item) => item.slug === routeParts[1]) : undefined;
   const selectedTournament = routeTournament ?? getTournament(preferredTournamentId) ?? tournaments[0];
   const isBracketPage = routeTournament?.id === "ti-2026" && routeParts.length === 3 && routeParts[2] === "bracket";
+  const isPlayoffsPage = routeTournament?.id === "ti-2026" && routeParts.length === 3 && routeParts[2] === "playoffs";
   const availableDates = getTournamentDates(allMatches, selectedTournament.id);
-  const requestedDate = routeParts.length === 3 && !isBracketPage ? routeParts[2] : undefined;
+  const requestedDate = routeParts.length === 3 && !isBracketPage && !isPlayoffsPage ? routeParts[2] : undefined;
   const selectedDate = requestedDate && availableDates.includes(requestedDate) ? requestedDate : availableDates[availableDates.length - 1];
   const dateMatches = useMemo(
     () => (selectedDate ? getMatchesForDate(allMatches, selectedTournament.id, selectedDate) : []),
@@ -317,10 +319,11 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
   const routeIsValid = pathname === "/"
     || isTournamentPicker
     || isBracketPage
+    || isPlayoffsPage
     || (routeTournament !== undefined
       && (routeParts.length === 2
         || (routeParts.length === 3 && availableDates.includes(routeParts[2]))));
-  const canonicalPath = isTournamentPicker ? "/tournaments" : isBracketPage ? bracketPath(selectedTournament) : selectedDate ? datePath(selectedTournament, selectedDate) : "/";
+  const canonicalPath = isTournamentPicker ? "/tournaments" : isBracketPage ? bracketPath(selectedTournament) : isPlayoffsPage ? `${tournamentPath(selectedTournament)}/playoffs` : selectedDate ? datePath(selectedTournament, selectedDate) : "/";
 
   useEffect(() => {
     if (routeIsValid) return;
@@ -407,17 +410,17 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
   return <div className={`site-shell ${search ? "searching" : ""}`}>
      <header className="topbar">
        <SiteLink className="brand" href="/" ariaLabel="Riki VODs home"><span className="brand-mark" aria-hidden="true"><i /><i /></span><span>RIKI<span className="brand-dot">.</span>VODS</span></SiteLink>
-       <nav className="desktop-nav" aria-label="Primary navigation"><SiteLink className={pathname.startsWith("/tournaments") ? "active" : undefined} href="/tournaments">Tournaments</SiteLink><SiteLink className={isBracketPage ? "active" : undefined} href={bracketPath(getTournament(preferredTournamentId) ?? tournaments[0])}>Swiss bracket</SiteLink>{isTournamentPicker || isBracketPage ? <SiteLink href="/">Continue watching</SiteLink> : <a href="#continue">Continue watching</a>}<button type="button" onClick={() => setHowOpen(true)}>How it works</button></nav>
+        <nav className="desktop-nav" aria-label="Primary navigation"><SiteLink className={pathname.startsWith("/tournaments") ? "active" : undefined} href="/tournaments">Tournaments</SiteLink><SiteLink className={isBracketPage ? "active" : undefined} href={bracketPath(getTournament(preferredTournamentId) ?? tournaments[0])}>Swiss bracket</SiteLink><SiteLink className={isPlayoffsPage ? "active" : undefined} href={`${tournamentPath(getTournament(preferredTournamentId) ?? tournaments[0])}/playoffs`}>Playoffs</SiteLink>{isTournamentPicker || isBracketPage || isPlayoffsPage ? <SiteLink href="/">Continue watching</SiteLink> : <a href="#continue">Continue watching</a>}<button type="button" onClick={() => setHowOpen(true)}>How it works</button></nav>
        <button type="button" className="icon-button" onClick={() => setSettingsOpen(true)} aria-label="Open spoiler settings"><span>Spoiler settings</span><ShieldIcon /></button>
      </header>
 
-     {isTournamentPicker ? <TournamentSelectionPage allMatches={allMatches} /> : isBracketPage ? <SwissBracket matches={tiBracketMatches} /> : <main>
+      {isTournamentPicker ? <TournamentSelectionPage allMatches={allMatches} /> : isBracketPage ? <SwissBracket matches={tiBracketMatches} /> : isPlayoffsPage ? <PlayoffsBracket matches={allMatches} /> : <main>
       <section className="hero-section">
         <div className="hero-copy"><p className="kicker"><span className="live-dot" /> Spoiler protection is on</p><h1>Spoiler-free Dota 2 VODs</h1><p className="hero-lede">Scores, result metadata, and your watch boundary stay out of sight while you catch up across the current archive.</p></div>
         <SearchPanel search={search} searchType={searchType} onSearch={setSearch} onSearchType={setSearchType} />
       </section>
 
-       <section className="tournament-head"><div><p className="section-label">Featured tournament</p><h2>{selectedTournament.name}</h2><p>{selectedTournament.year} · {availableDates.length} archive date{availableDates.length === 1 ? "" : "s"}</p>{selectedTournament.id === "ti-2026" && <SiteLink className="bracket-entry-link" href={bracketPath(selectedTournament)}>Open Swiss bracket ↗</SiteLink>}</div><ProgressBar watchedCount={watchedCurrentDayMatches} total={progressTotal} /></section>
+       <section className="tournament-head"><div><p className="section-label">Featured tournament</p><h2>{selectedTournament.name}</h2><p>{selectedTournament.year} · {availableDates.length} archive date{availableDates.length === 1 ? "" : "s"}</p>{selectedTournament.id === "ti-2026" && <><SiteLink className="bracket-entry-link" href={bracketPath(selectedTournament)}>Open Swiss bracket ↗</SiteLink><SiteLink className="playoffs-entry-link" href={`${tournamentPath(selectedTournament)}/playoffs`}>Open playoffs bracket ↗</SiteLink></>}</div><ProgressBar watchedCount={watchedCurrentDayMatches} total={progressTotal} /></section>
 
       <nav className="day-tabs" aria-label="Tournament dates">
         {availableDates.map((date) => <button type="button" key={date} className={selectedDate === date ? "active" : ""} onClick={() => selectDate(date)} aria-pressed={selectedDate === date}><span>{shortDate(date)}</span><small>{getArchiveForDate(selectedTournament.id, date)?.stage.split(" · ")[0]}</small></button>)}
@@ -435,7 +438,7 @@ function App({ allMatches = matches }: { allMatches?: MatchRecord[] }) {
     </main>}
 
      <footer id="about"><span>riki-vods</span><p>No accounts. Your watch history never leaves this browser. · Only EWC 2026 and TI 2026 are in this archive. · Data: <a href={(selectedArchive ?? archive).sources.liquipedia} target="_blank" rel="noreferrer">Liquipedia</a> + <a href={(selectedArchive ?? archive).sources.opendota} target="_blank" rel="noreferrer">OpenDota</a>.</p></footer>
-     <nav className="mobile-nav" aria-label="Mobile navigation"><SiteLink className={pathname.startsWith("/tournaments") ? "active" : undefined} href="/tournaments">Tournaments</SiteLink><SiteLink className={isBracketPage ? "active" : undefined} href={bracketPath(getTournament(preferredTournamentId) ?? tournaments[0])}>Bracket</SiteLink>{isTournamentPicker || isBracketPage ? <SiteLink href="/">Progress</SiteLink> : <a href="#continue">Progress</a>}<button type="button" onClick={() => setHowOpen(true)}>How</button><button type="button" onClick={() => setSettingsOpen(true)}>Cloak</button></nav>
+      <nav className="mobile-nav" aria-label="Mobile navigation"><SiteLink className={pathname.startsWith("/tournaments") ? "active" : undefined} href="/tournaments">Tournaments</SiteLink><SiteLink className={isBracketPage ? "active" : undefined} href={bracketPath(getTournament(preferredTournamentId) ?? tournaments[0])}>Swiss</SiteLink><SiteLink className={isPlayoffsPage ? "active" : undefined} href={`${tournamentPath(getTournament(preferredTournamentId) ?? tournaments[0])}/playoffs`}>Playoffs</SiteLink>{isTournamentPicker || isBracketPage || isPlayoffsPage ? <SiteLink href="/">Progress</SiteLink> : <a href="#continue">Progress</a>}<button type="button" onClick={() => setHowOpen(true)}>How</button><button type="button" onClick={() => setSettingsOpen(true)}>Cloak</button></nav>
     {howOpen && <HowItWorks onClose={() => setHowOpen(false)} onOpenSettings={() => { setHowOpen(false); setSettingsOpen(true); }} />}
     {settingsOpen && <Settings watchedCount={watchedCurrentDayMatches} total={progressTotal} onClose={() => setSettingsOpen(false)} onReset={resetProgress} />}
     {notice && <div className="toast" role="status">✓ {notice}</div>}

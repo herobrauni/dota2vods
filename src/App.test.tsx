@@ -78,6 +78,20 @@ describe("Riki VODs frontend", () => {
     expect(document.querySelector(".bracket-progress")).toHaveTextContent("1/44 results revealed");
   });
 
+  it("renders the dedicated TI playoffs bracket with archived VOD access", () => {
+    renderAt("/tournaments/the-international-2026/playoffs");
+
+    expect(screen.getByRole("heading", { name: "Playoffs bracket", level: 1 })).toBeInTheDocument();
+    expect(document.querySelectorAll(".playoff-match-card")).toHaveLength(14);
+    expect(screen.getByText("Upper bracket")).toBeInTheDocument();
+    expect(screen.getByText("Lower bracket")).toBeInTheDocument();
+    expect(screen.getByRole("article", { name: "Iron Wing versus Team Spirit" })).toHaveClass("archived");
+    expect(screen.getByRole("link", { name: "Open Main Event VODs ↗" })).toHaveAttribute("href", "/tournaments/the-international-2026/2026-08-20");
+    expect(screen.getAllByRole("link", { name: "Open VODs ↗" })).toHaveLength(1);
+    expect(screen.queryByText("WINNER")).not.toBeInTheDocument();
+    expect(screen.queryByText(/\d+[:-]\d+/)).not.toBeInTheDocument();
+  });
+
   it("reveals a complete round without requiring one click per matchup", () => {
     renderAt("/tournaments/the-international-2026/bracket");
 
