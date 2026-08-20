@@ -516,7 +516,7 @@
           "number": 2,
           "matchId": 8955934230,
           "source": "opendota",
-          "vodUrl": "https://youtu.be/Oz6AULXp9Ro",
+          "vodUrl": "https://youtu.be/JBk8KE-zflY",
           "heroes": {
             "teamA": [
               {
@@ -566,11 +566,54 @@
         },
         {
           "number": 3,
-          "source": "concealed-fallback",
+          "matchId": 8956096810,
+          "source": "opendota",
           "vodUrl": null,
           "heroes": {
-            "teamA": [],
-            "teamB": []
+            "teamA": [
+              {
+                "name": "Bounty Hunter",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/bounty_hunter.png"
+              },
+              {
+                "name": "Mirana",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/mirana.png"
+              },
+              {
+                "name": "Sniper",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/sniper.png"
+              },
+              {
+                "name": "Underlord",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/abyssal_underlord.png"
+              },
+              {
+                "name": "Necrophos",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/necrolyte.png"
+              }
+            ],
+            "teamB": [
+              {
+                "name": "Lina",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/lina.png"
+              },
+              {
+                "name": "Crystal Maiden",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/crystal_maiden.png"
+              },
+              {
+                "name": "Windranger",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/windrunner.png"
+              },
+              {
+                "name": "Tiny",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/tiny.png"
+              },
+              {
+                "name": "Doom",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/doom_bringer.png"
+              }
+            ]
           }
         }
       ]
@@ -581,5 +624,5 @@
     "liquipedia": "https://liquipedia.net/dota2/The_International/2026/Main_Event",
     "attribution": "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia."
   },
-  "generatedAt": "2026-08-20T16:26:40.365Z"
+  "generatedAt": "2026-08-20T17:27:42.077Z"
 }
