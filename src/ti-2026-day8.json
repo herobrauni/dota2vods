@@ -448,7 +448,7 @@
       "id": "ti-2026-day8-1132197",
       "openDotaSeriesId": 1132197,
       "bestOf": 3,
-      "matchPageUrl": "https://liquipedia.net/dota2/index.php?title=Match:ID_TI2026Main_R01-M004&action=edit&redlink=1",
+      "matchPageUrl": "https://liquipedia.net/dota2/Match:ID_TI2026Main_R01-M004",
       "teamA": "Nigma Galaxy",
       "teamB": "Team Falcons",
       "teamAId": 10136357,
@@ -568,7 +568,7 @@
           "number": 3,
           "matchId": 8956096810,
           "source": "opendota",
-          "vodUrl": null,
+          "vodUrl": "https://youtu.be/iWpbr0I3M0k",
           "heroes": {
             "teamA": [
               {
@@ -624,5 +624,5 @@
     "liquipedia": "https://liquipedia.net/dota2/The_International/2026/Main_Event",
     "attribution": "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia."
   },
-  "generatedAt": "2026-08-20T17:27:42.077Z"
+  "generatedAt": "2026-08-20T19:29:42.664Z"
 }
