@@ -80,7 +80,7 @@
           "number": 2,
           "matchId": 8956821666,
           "source": "opendota",
-          "vodUrl": "https://youtu.be/1RRUoVqpeUs",
+          "vodUrl": "https://youtu.be/mXtzz7UHftw",
           "heroes": {
             "teamA": [
               {
@@ -145,5 +145,5 @@
     "liquipedia": "https://liquipedia.net/dota2/The_International/2026/Main_Event",
     "attribution": "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia."
   },
-  "generatedAt": "2026-08-21T04:38:54.082Z"
+  "generatedAt": "2026-08-21T05:39:53.526Z"
 }
