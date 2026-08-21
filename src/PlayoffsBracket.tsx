@@ -8,6 +8,7 @@ type PlayoffMatch = {
   format: "BO3" | "BO5";
   slots: [string, string];
   sourcePair?: [string, string];
+  sourceMatchPageId: string;
 };
 
 type PlayoffRound = {
@@ -23,10 +24,10 @@ const rounds: PlayoffRound[] = [
     label: "Upper quarterfinals",
     shortLabel: "UB QF",
     matches: [
-      { id: "ub-qf-1", label: "Match 1", format: "BO3", slots: ["Iron Wing", "Team Spirit"], sourcePair: ["Iron Wing", "Team Spirit"] },
-      { id: "ub-qf-2", label: "Match 2", format: "BO3", slots: ["PARIVISION", "BetBoom Team"], sourcePair: ["PARIVISION", "BetBoom Team"] },
-      { id: "ub-qf-3", label: "Match 3", format: "BO3", slots: ["Team Liquid", "Team Yandex"], sourcePair: ["Team Liquid", "Team Yandex"] },
-      { id: "ub-qf-4", label: "Match 4", format: "BO3", slots: ["Nigma Galaxy", "Team Falcons"], sourcePair: ["Nigma Galaxy", "Team Falcons"] },
+      { id: "ub-qf-1", label: "Match 1", format: "BO3", slots: ["Iron Wing", "Team Spirit"], sourcePair: ["Iron Wing", "Team Spirit"], sourceMatchPageId: "R01-M001" },
+      { id: "ub-qf-2", label: "Match 2", format: "BO3", slots: ["PARIVISION", "BetBoom Team"], sourcePair: ["PARIVISION", "BetBoom Team"], sourceMatchPageId: "R01-M002" },
+      { id: "ub-qf-3", label: "Match 3", format: "BO3", slots: ["Team Liquid", "Team Yandex"], sourcePair: ["Team Liquid", "Team Yandex"], sourceMatchPageId: "R01-M003" },
+      { id: "ub-qf-4", label: "Match 4", format: "BO3", slots: ["Nigma Galaxy", "Team Falcons"], sourcePair: ["Nigma Galaxy", "Team Falcons"], sourceMatchPageId: "R01-M004" },
     ],
   },
   {
@@ -34,8 +35,8 @@ const rounds: PlayoffRound[] = [
     label: "Upper semifinals",
     shortLabel: "UB SF",
     matches: [
-      { id: "ub-sf-1", label: "Match 5", format: "BO3", slots: ["Winner UB QF 1", "Winner UB QF 2"] },
-      { id: "ub-sf-2", label: "Match 6", format: "BO3", slots: ["Winner UB QF 3", "Winner UB QF 4"] },
+      { id: "ub-sf-1", label: "Match 5", format: "BO3", slots: ["Winner UB QF 1", "Winner UB QF 2"], sourceMatchPageId: "R02-M001" },
+      { id: "ub-sf-2", label: "Match 6", format: "BO3", slots: ["Winner UB QF 3", "Winner UB QF 4"], sourceMatchPageId: "R02-M002" },
     ],
   },
   {
@@ -43,7 +44,7 @@ const rounds: PlayoffRound[] = [
     label: "Upper final",
     shortLabel: "UB F",
     matches: [
-      { id: "ub-f", label: "Match 7", format: "BO3", slots: ["Winner UB SF 1", "Winner UB SF 2"] },
+      { id: "ub-f", label: "Match 7", format: "BO3", slots: ["Winner UB SF 1", "Winner UB SF 2"], sourceMatchPageId: "R04-M001" },
     ],
   },
   {
@@ -51,7 +52,7 @@ const rounds: PlayoffRound[] = [
     label: "Grand final",
     shortLabel: "GF",
     matches: [
-      { id: "grand-final", label: "Championship match", format: "BO5", slots: ["Winner UB F", "Winner LB F"] },
+      { id: "grand-final", label: "Championship match", format: "BO5", slots: ["Winner UB F", "Winner LB F"], sourceMatchPageId: "R07-M001" },
     ],
   },
 ];
@@ -62,8 +63,8 @@ const lowerRounds: PlayoffRound[] = [
     label: "Lower round one",
     shortLabel: "LB R1",
     matches: [
-      { id: "lb-r1-1", label: "Match 8", format: "BO3", slots: ["Loser UB QF 1", "Loser UB QF 2"] },
-      { id: "lb-r1-2", label: "Match 9", format: "BO3", slots: ["Loser UB QF 3", "Loser UB QF 4"] },
+      { id: "lb-r1-1", label: "Match 8", format: "BO3", slots: ["Loser UB QF 1", "Loser UB QF 2"], sourcePair: ["Iron Wing", "BetBoom Team"], sourceMatchPageId: "R01-M005" },
+      { id: "lb-r1-2", label: "Match 9", format: "BO3", slots: ["Loser UB QF 3", "Loser UB QF 4"], sourcePair: ["Team Liquid", "Team Falcons"], sourceMatchPageId: "R01-M006" },
     ],
   },
   {
@@ -71,8 +72,8 @@ const lowerRounds: PlayoffRound[] = [
     label: "Lower quarterfinals",
     shortLabel: "LB QF",
     matches: [
-      { id: "lb-qf-1", label: "Match 10", format: "BO3", slots: ["Loser UB SF 1", "Winner LB R1 1"] },
-      { id: "lb-qf-2", label: "Match 11", format: "BO3", slots: ["Loser UB SF 2", "Winner LB R1 2"] },
+      { id: "lb-qf-1", label: "Match 10", format: "BO3", slots: ["Loser UB SF 1", "Winner LB R1 1"], sourceMatchPageId: "R03-M001" },
+      { id: "lb-qf-2", label: "Match 11", format: "BO3", slots: ["Loser UB SF 2", "Winner LB R1 2"], sourceMatchPageId: "R03-M002" },
     ],
   },
   {
@@ -80,7 +81,7 @@ const lowerRounds: PlayoffRound[] = [
     label: "Lower semifinals",
     shortLabel: "LB SF",
     matches: [
-      { id: "lb-sf", label: "Match 12", format: "BO3", slots: ["Winner LB QF 1", "Winner LB QF 2"] },
+      { id: "lb-sf", label: "Match 12", format: "BO3", slots: ["Winner LB QF 1", "Winner LB QF 2"], sourceMatchPageId: "R05-M001" },
     ],
   },
   {
@@ -88,7 +89,7 @@ const lowerRounds: PlayoffRound[] = [
     label: "Lower final",
     shortLabel: "LB F",
     matches: [
-      { id: "lb-f", label: "Match 13", format: "BO3", slots: ["Loser UB F", "Winner LB SF"] },
+      { id: "lb-f", label: "Match 13", format: "BO3", slots: ["Loser UB F", "Winner LB SF"], sourceMatchPageId: "R06-M001" },
     ],
   },
 ];
@@ -152,12 +153,22 @@ function sameTeam(left: string | null, right: string | null) {
 }
 
 function sourceMatchFor(playoffMatch: PlayoffMatch, allMatches: MatchRecord[]) {
-  if (!playoffMatch.sourcePair) return undefined;
-  const expected = playoffMatch.sourcePair.map(normalizeTeamName).sort().join("|");
   const mainEventIds = new Set(archives
     .filter((archive) => archive.tournament.id === "ti-2026" && archive.stage.startsWith("Main Event"))
     .flatMap((archive) => archive.matches.map((match) => match.id)));
-  return allMatches.find((match) => mainEventIds.has(match.id) && [match.teamA, match.teamB].map(normalizeTeamName).sort().join("|") === expected);
+  const mainEventMatches = allMatches.filter((match) => mainEventIds.has(match.id));
+
+  // Explicit pairs cover known matchups while keeping the bracket spoiler-safe.
+  if (playoffMatch.sourcePair) {
+    const expected = playoffMatch.sourcePair.map(normalizeTeamName).sort().join("|");
+    const explicit = mainEventMatches.find((match) => [match.teamA, match.teamB].map(normalizeTeamName).sort().join("|") === expected);
+    if (explicit) return explicit;
+  }
+
+  // Liquipedia's Main Event match-page IDs are stable even as scheduled days
+  // are added to the snapshots. This fallback makes each newly published
+  // series appear automatically without another source-pair edit.
+  return mainEventMatches.find((match) => match.matchPageUrl?.includes(playoffMatch.sourceMatchPageId));
 }
 
 function sourceHref(match: MatchRecord) {
