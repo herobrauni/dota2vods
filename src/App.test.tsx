@@ -103,6 +103,26 @@ describe("Riki VODs frontend", () => {
     expect(screen.queryByText(/\d+[:-]\d+/)).not.toBeInTheDocument();
   });
 
+  it("reveals playoff winners and feeds them into the next games", () => {
+    renderAt("/tournaments/the-international-2026/playoffs");
+
+    fireEvent.click(screen.getByRole("button", { name: "Reveal winner for Iron Wing versus Team Spirit" }));
+
+    expect(screen.getByText("WINNER")).toBeInTheDocument();
+    expect(screen.getByRole("article", { name: "Team Spirit versus Winner UB QF 2" })).toBeInTheDocument();
+    expect(document.querySelector(".playoffs-progress")).toHaveTextContent("1/14 results revealed");
+
+    fireEvent.click(screen.getByRole("button", { name: "Reveal winner for PARIVISION versus BetBoom Team" }));
+
+    const upperSemifinal = screen.getByRole("article", { name: "Team Spirit versus PARIVISION" });
+    expect(upperSemifinal).toBeInTheDocument();
+    expect(within(upperSemifinal).getByRole("button", { name: "Waiting for result for Team Spirit versus PARIVISION" })).toBeDisabled();
+    expect(document.querySelector(".playoffs-progress")).toHaveTextContent("2/14 results revealed");
+
+    fireEvent.click(screen.getByRole("button", { name: "Reveal winner for Iron Wing versus BetBoom Team" }));
+    expect(screen.getByRole("article", { name: "Iron Wing versus BetBoom Team" })).toHaveTextContent("WINNER");
+  });
+
   it("reveals a complete round without requiring one click per matchup", () => {
     renderAt("/tournaments/the-international-2026/bracket");
 

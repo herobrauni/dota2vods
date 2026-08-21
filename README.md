@@ -22,7 +22,8 @@ results while the UI keeps them hidden until each matchup is opened.
 The TI 2026 event page also links to a separate spoiler-safe Main Event playoffs
 bracket at `/tournaments/the-international-2026/playoffs`. It shows the eight-team
 double-elimination path and links each archived series back to its matching VOD
-day without exposing scores or winners.
+day. Click a ready matchup to reveal its winner and unlock the next games; scores
+remain hidden.
 
 ## Run the site
 

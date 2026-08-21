@@ -1,4 +1,6 @@
+import { useEffect, useMemo, useState } from "react";
 import { archives, type MatchRecord } from "./vods";
+import playoffResults from "./ti-2026-playoffs-results.json";
 
 type PlayoffMatch = {
   id: string;
@@ -93,6 +95,23 @@ const lowerRounds: PlayoffRound[] = [
 
 const allRounds = [...rounds, ...lowerRounds];
 const totalMatches = allRounds.reduce((total, round) => total + round.matches.length, 0);
+const resultByMatchId = playoffResults as Record<string, string>;
+const revealStorageKey = "riki-ti-2026-playoffs-reveals-v1";
+const referenceMatchIds: Record<string, string> = {
+  "UB QF 1": "ub-qf-1",
+  "UB QF 2": "ub-qf-2",
+  "UB QF 3": "ub-qf-3",
+  "UB QF 4": "ub-qf-4",
+  "UB SF 1": "ub-sf-1",
+  "UB SF 2": "ub-sf-2",
+  "UB F": "ub-f",
+  "LB R1 1": "lb-r1-1",
+  "LB R1 2": "lb-r1-2",
+  "LB QF 1": "lb-qf-1",
+  "LB QF 2": "lb-qf-2",
+  "LB SF": "lb-sf",
+  "LB F": "lb-f",
+};
 
 // Matchups with concrete team slots (later rounds gain sourcePairs once their
 // participants are known). Exported so tests can derive expectations from the
@@ -119,6 +138,17 @@ export function normalizeTeamName(name: string) {
   if (normalized === "boomboys" || normalized === "bb team") return "betboom team";
   if (normalized === "pvision" || normalized === "team vision") return "parivision";
   return normalized;
+}
+
+function slotReference(slot: string) {
+  const match = slot.match(/^(Winner|Loser) (.+)$/);
+  if (!match) return null;
+  const matchId = referenceMatchIds[match[2]];
+  return matchId ? { matchId, outcome: match[1].toLowerCase() as "winner" | "loser" } : null;
+}
+
+function sameTeam(left: string | null, right: string | null) {
+  return Boolean(left && right && normalizeTeamName(left) === normalizeTeamName(right));
 }
 
 function sourceMatchFor(playoffMatch: PlayoffMatch, allMatches: MatchRecord[]) {
@@ -151,32 +181,103 @@ function TeamBadge({ name, allMatches }: { name: string; allMatches: MatchRecord
   return <span className="playoff-team-badge"><span>{initials(name)}</span>{team?.logoUrl && <img src={team.logoUrl} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</span>;
 }
 
-function PlayoffMatchCard({ playoffMatch, allMatches }: { playoffMatch: PlayoffMatch; allMatches: MatchRecord[] }) {
+function PlayoffMatchCard({ playoffMatch, allMatches, revealed, resolveSlot, canReveal, onReveal }: { playoffMatch: PlayoffMatch; allMatches: MatchRecord[]; revealed: Set<string>; resolveSlot: (slot: string) => string | null; canReveal: (match: PlayoffMatch) => boolean; onReveal: (matchId: string) => void }) {
   const sourceMatch = sourceMatchFor(playoffMatch, allMatches);
   const href = sourceMatch ? sourceHref(sourceMatch) : null;
-  const ready = Boolean(sourceMatch);
-  return <article className={`playoff-match-card ${ready ? "archived" : "upcoming"}`} aria-label={`${playoffMatch.slots[0]} versus ${playoffMatch.slots[1]}`}>
-    <div className="playoff-match-head"><span>{playoffMatch.label}</span><strong>{playoffMatch.format}</strong></div>
-    <div className="playoff-team-list">
-      {playoffMatch.slots.map((slot, index) => knownTeamNames.has(slot)
-        ? <div className="playoff-team-row" key={slot}><TeamBadge name={slot} allMatches={allMatches} /><span>{slot}</span><small>{index === 0 ? "A" : "B"}</small></div>
-        : <div className="playoff-slot-row" key={slot}><span className="playoff-slot-mark">{index === 0 ? "↗" : "↘"}</span><span>{slot}</span></div>)}
-    </div>
-    <div className="playoff-match-foot"><span className="playoff-match-status">{ready ? "ARCHIVE READY" : "AWAITING RESULT"}</span>{href ? <a href={href}>Open VODs ↗</a> : <span>Not played yet</span>}</div>
+  const matchTeams = playoffMatch.slots.map((slot) => resolveSlot(slot));
+  const matchupName = matchTeams.map((team, index) => team ?? playoffMatch.slots[index]).join(" versus ");
+  const isRevealed = revealed.has(playoffMatch.id);
+  const ready = canReveal(playoffMatch);
+  const winner = isRevealed ? resultByMatchId[playoffMatch.id] ?? null : null;
+  const status = isRevealed ? "WINNER REVEALED" : ready ? "CLICK TO REVEAL" : resultByMatchId[playoffMatch.id] ? "LOCKED" : "AWAITING RESULT";
+  return <article className={`playoff-match-card ${sourceMatch ? "archived" : "upcoming"} ${isRevealed ? "revealed" : ready ? "ready" : "locked"}`} aria-label={matchupName}>
+    <button type="button" className="playoff-match-surface" disabled={!ready && !isRevealed} onClick={() => onReveal(playoffMatch.id)} aria-label={isRevealed ? `${matchupName} winner revealed` : ready ? `Reveal winner for ${matchupName}` : resultByMatchId[playoffMatch.id] ? `Waiting on prior result for ${matchupName}` : `Waiting for result for ${matchupName}`}>
+      <div className="playoff-match-head"><span>{playoffMatch.label}</span><strong>{playoffMatch.format}</strong></div>
+      <div className="playoff-team-list">
+        {playoffMatch.slots.map((slot, index) => {
+          const team = matchTeams[index];
+          if (!team) return <div className="playoff-slot-row" key={slot}><span className="playoff-slot-mark">{index === 0 ? "↗" : "↘"}</span><span>{slot}</span></div>;
+          const winningTeam = sameTeam(team, winner);
+          return <div className={`playoff-team-row ${isRevealed ? winningTeam ? "winner" : "loser" : ""}`} key={slot}><TeamBadge name={team} allMatches={allMatches} /><span>{team}</span>{winningTeam && <strong className="playoff-winner-tag">WINNER</strong>}{!isRevealed && <small>{index === 0 ? "A" : "B"}</small>}</div>;
+        })}
+      </div>
+      <span className="playoff-reveal-label">{status}</span>
+    </button>
+    <div className="playoff-match-foot"><span className="playoff-match-status">{sourceMatch ? "VOD AVAILABLE" : "NOT ARCHIVED"}</span>{href ? <a href={href}>Open VODs ↗</a> : <span>Not played yet</span>}</div>
   </article>;
 }
 
-function PlayoffRoundColumn({ round, allMatches }: { round: PlayoffRound; allMatches: MatchRecord[] }) {
+function PlayoffRoundColumn({ round, allMatches, revealed, resolveSlot, canReveal, onReveal, onRevealRound }: { round: PlayoffRound; allMatches: MatchRecord[]; revealed: Set<string>; resolveSlot: (slot: string) => string | null; canReveal: (match: PlayoffMatch) => boolean; onReveal: (matchId: string) => void; onRevealRound: (round: PlayoffRound) => void }) {
+  const pending = round.matches.filter((match) => !revealed.has(match.id));
+  const roundReady = pending.length > 0 && pending.every(canReveal);
   return <section className={`playoff-round-column ${round.id}`} aria-label={round.label}>
-    <header className="playoff-round-head"><div><span>{round.shortLabel}</span><h3>{round.label}</h3></div><small>{round.matches.length} {round.matches.length === 1 ? "series" : "series"}</small></header>
-    <div className="playoff-round-matches">{round.matches.map((playoffMatch) => <PlayoffMatchCard key={playoffMatch.id} playoffMatch={playoffMatch} allMatches={allMatches} />)}</div>
+    <header className="playoff-round-head"><div><span>{round.shortLabel}</span><h3>{round.label}</h3></div>{pending.length > 0 ? <button type="button" className="playoff-round-reveal" disabled={!roundReady} onClick={() => onRevealRound(round)}>Reveal round</button> : <small>Revealed</small>}</header>
+    <div className="playoff-round-matches">{round.matches.map((playoffMatch) => <PlayoffMatchCard key={playoffMatch.id} playoffMatch={playoffMatch} allMatches={allMatches} revealed={revealed} resolveSlot={resolveSlot} canReveal={canReveal} onReveal={onReveal} />)}</div>
   </section>;
 }
 
 export function PlayoffsBracket({ matches }: { matches: MatchRecord[] }) {
-  const archivedMatches = rounds.flatMap((round) => round.matches).filter((playoffMatch) => sourceMatchFor(playoffMatch, matches)).length;
+  const [revealedIds, setRevealedIds] = useState<string[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+  const revealed = useMemo(() => new Set(revealedIds), [revealedIds]);
+  const matchById = useMemo(() => new Map(allRounds.flatMap((round) => round.matches).map((match) => [match.id, match])), []);
   const vodArchive = archives.find((archive) => archive.tournament.id === "ti-2026" && archive.stage.startsWith("Main Event"));
   const vodHref = vodArchive ? `/tournaments/${vodArchive.tournament.slug}/${vodArchive.date}` : "/tournaments/the-international-2026";
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(revealStorageKey) || "[]");
+      if (Array.isArray(saved)) setRevealedIds(saved.filter((item): item is string => typeof item === "string"));
+    } catch {
+      // A malformed local value should never block the bracket.
+    }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(revealStorageKey, JSON.stringify(revealedIds));
+    } catch {
+      // The bracket still works for the current session when storage is unavailable.
+    }
+  }, [hydrated, revealedIds]);
+
+  function resolveMatchWinner(matchId: string): string | null {
+    const bracketMatch = matchById.get(matchId);
+    const actualWinner = resultByMatchId[matchId];
+    if (!bracketMatch || !revealed.has(matchId) || !actualWinner) return null;
+    const teams = bracketMatch.slots.map(resolveSlot);
+    return teams.find((team) => sameTeam(team, actualWinner)) ?? null;
+  }
+
+  function resolveSlot(slot: string): string | null {
+    if (knownTeamNames.has(slot)) return slot;
+    const reference = slotReference(slot);
+    if (!reference) return null;
+    const sourceMatch = matchById.get(reference.matchId);
+    const winner = resolveMatchWinner(reference.matchId);
+    if (!sourceMatch || !winner) return null;
+    if (reference.outcome === "winner") return winner;
+    const sourceTeams = sourceMatch.slots.map(resolveSlot);
+    return sourceTeams.find((team) => team && !sameTeam(team, winner)) ?? null;
+  }
+
+  function canReveal(playoffMatch: PlayoffMatch) {
+    return !revealed.has(playoffMatch.id)
+      && Boolean(resultByMatchId[playoffMatch.id])
+      && playoffMatch.slots.every((slot) => Boolean(resolveSlot(slot)));
+  }
+
+  function revealMatch(matchId: string) {
+    setRevealedIds((current) => current.includes(matchId) ? current : [...current, matchId]);
+  }
+
+  function revealRound(round: PlayoffRound) {
+    setRevealedIds((current) => Array.from(new Set([...current, ...round.matches.map((match) => match.id)])));
+  }
+
+  const readyCount = allRounds.flatMap((round) => round.matches).filter(canReveal).length;
 
   return <main className="playoffs-page">
     <section className="playoffs-hero">
@@ -191,18 +292,18 @@ export function PlayoffsBracket({ matches }: { matches: MatchRecord[] }) {
 
     <section className="playoffs-controls" aria-label="Playoffs bracket summary">
       <div><span className="section-label">Double-elimination Main Event</span><p>Slots advance by round, while your VOD boundary stays spoiler-safe.</p></div>
-      <div className="playoffs-control-actions"><span className="playoffs-progress"><strong>{archivedMatches}</strong>/{totalMatches} series archived</span><a className="playoffs-vods-link" href={vodHref}>Open Main Event VODs ↗</a></div>
+      <div className="playoffs-control-actions"><span className="playoffs-progress"><strong>{revealedIds.length}</strong>/{totalMatches} results revealed · {readyCount} ready</span><a className="playoffs-vods-link" href={vodHref}>Open Main Event VODs ↗</a><button type="button" className="playoffs-reset" onClick={() => setRevealedIds([])}>Reset reveals</button></div>
     </section>
 
     <section className="playoffs-board-wrap" aria-label="TI 2026 playoffs bracket">
       <div className="playoffs-board-intro"><span>UPPER BRACKET</span><span>Open archived series when you are ready →</span></div>
       <div className="playoffs-board-scroll"><div className="playoffs-board">
         <div className="playoffs-upper-label">Upper bracket <span>One loss remains survivable</span></div>
-        <div className="playoffs-round-grid playoffs-upper-grid">{rounds.map((round) => <PlayoffRoundColumn key={round.id} round={round} allMatches={matches} />)}</div>
+        <div className="playoffs-round-grid playoffs-upper-grid">{rounds.map((round) => <PlayoffRoundColumn key={round.id} round={round} allMatches={matches} revealed={revealed} resolveSlot={resolveSlot} canReveal={canReveal} onReveal={revealMatch} onRevealRound={revealRound} />)}</div>
         <div className="playoffs-lower-label">Lower bracket <span>Every match is do-or-die</span></div>
-        <div className="playoffs-round-grid playoffs-lower-grid">{lowerRounds.map((round) => <PlayoffRoundColumn key={round.id} round={round} allMatches={matches} />)}</div>
+        <div className="playoffs-round-grid playoffs-lower-grid">{lowerRounds.map((round) => <PlayoffRoundColumn key={round.id} round={round} allMatches={matches} revealed={revealed} resolveSlot={resolveSlot} canReveal={canReveal} onReveal={revealMatch} onRevealRound={revealRound} />)}</div>
       </div></div>
-      <p className="playoffs-footnote"><span>◎</span> Scores and winners stay hidden. Your archive progress stays on this device.</p>
+      <p className="playoffs-footnote"><span>◎</span> Scores stay hidden; winners reveal only when you choose. Your progress stays on this device.</p>
     </section>
   </main>;
 }
