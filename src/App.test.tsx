@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App, { getMatchesForDate, getTournamentDates } from "./App";
 import { archive, archives, fallbackHeroIconUrl, matches, tournaments } from "./vods";
-import { normalizeTeamName, playoffSourcePairs } from "./PlayoffsBracket";
+import { normalizeTeamName, playoffSourceMatchPageIds, playoffSourcePairs } from "./PlayoffsBracket";
 
 // Expected TI dates are derived from the snapshot files themselves so growing
 // the archive (a new ti-2026-dayN.json) never breaks this suite.
@@ -94,9 +94,11 @@ describe("Riki VODs frontend", () => {
     const mainEventSeries = archives
       .filter((item) => item.tournament.id === "ti-2026" && item.stage.startsWith("Main Event"))
       .flatMap((item) => item.matches);
-    const expectedVodLinks = playoffSourcePairs.filter((pair) => mainEventSeries.some((match) =>
+    const expectedPairVodLinks = playoffSourcePairs.filter((pair) => mainEventSeries.some((match) =>
       [match.teamA, match.teamB].map(normalizeTeamName).sort().join("|") === pair.map(normalizeTeamName).sort().join("|"),
-    )).length;
+    ));
+    const expectedVodLinks = mainEventSeries.filter((match) => playoffSourceMatchPageIds.some((id) => match.matchPageUrl?.includes(id))).length;
+    expect(expectedVodLinks).toBeGreaterThanOrEqual(expectedPairVodLinks.length);
     expect(expectedVodLinks).toBeGreaterThan(0);
     expect(screen.getAllByRole("link", { name: "Open VODs ↗" })).toHaveLength(expectedVodLinks);
     expect(screen.queryByText("WINNER")).not.toBeInTheDocument();

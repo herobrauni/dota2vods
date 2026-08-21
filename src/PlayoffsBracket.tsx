@@ -122,6 +122,10 @@ export const playoffSourcePairs: [string, string][] = allRounds
   .map((match) => match.sourcePair)
   .filter((pair): pair is [string, string] => Boolean(pair));
 
+export const playoffSourceMatchPageIds = allRounds
+  .flatMap((round) => round.matches)
+  .map((match) => match.sourceMatchPageId);
+
 const knownTeamNames = new Set([
   "Iron Wing",
   "Team Spirit",
