@@ -52,7 +52,7 @@ const rounds: PlayoffRound[] = [
     label: "Grand final",
     shortLabel: "GF",
     matches: [
-      { id: "grand-final", label: "Championship match", format: "BO5", slots: ["Winner UB F", "Winner LB F"], sourceMatchPageId: "R07-M001" },
+      { id: "grand-final", label: "Championship match", format: "BO5", slots: ["Winner UB F", "Winner LB F"], sourceMatchPageId: "R05-M001" },
     ],
   },
 ];
@@ -72,8 +72,8 @@ const lowerRounds: PlayoffRound[] = [
     label: "Lower quarterfinals",
     shortLabel: "LB QF",
     matches: [
-      { id: "lb-qf-1", label: "Match 10", format: "BO3", slots: ["Loser UB SF 1", "Winner LB R1 1"], sourceMatchPageId: "R03-M001" },
-      { id: "lb-qf-2", label: "Match 11", format: "BO3", slots: ["Loser UB SF 2", "Winner LB R1 2"], sourceMatchPageId: "R03-M002" },
+      { id: "lb-qf-1", label: "Match 10", format: "BO3", slots: ["Loser UB SF 2", "Winner LB R1 1"], sourceMatchPageId: "R02-M003" },
+      { id: "lb-qf-2", label: "Match 11", format: "BO3", slots: ["Loser UB SF 1", "Winner LB R1 2"], sourceMatchPageId: "R02-M004" },
     ],
   },
   {
@@ -81,7 +81,7 @@ const lowerRounds: PlayoffRound[] = [
     label: "Lower semifinals",
     shortLabel: "LB SF",
     matches: [
-      { id: "lb-sf", label: "Match 12", format: "BO3", slots: ["Winner LB QF 1", "Winner LB QF 2"], sourceMatchPageId: "R05-M001" },
+      { id: "lb-sf", label: "Match 12", format: "BO3", slots: ["Winner LB QF 1", "Winner LB QF 2"], sourceMatchPageId: "R03-M001" },
     ],
   },
   {
@@ -89,7 +89,7 @@ const lowerRounds: PlayoffRound[] = [
     label: "Lower final",
     shortLabel: "LB F",
     matches: [
-      { id: "lb-f", label: "Match 13", format: "BO3", slots: ["Loser UB F", "Winner LB SF"], sourceMatchPageId: "R06-M001" },
+      { id: "lb-f", label: "Match 13", format: "BO3", slots: ["Loser UB F", "Winner LB SF"], sourceMatchPageId: "R04-M002" },
     ],
   },
 ];

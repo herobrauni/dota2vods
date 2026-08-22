@@ -118,8 +118,19 @@ describe("Riki VODs frontend", () => {
 
     const upperSemifinal = screen.getByRole("article", { name: "Team Spirit versus PARIVISION" });
     expect(upperSemifinal).toBeInTheDocument();
-    expect(within(upperSemifinal).getByRole("button", { name: "Waiting for result for Team Spirit versus PARIVISION" })).toBeDisabled();
-    expect(document.querySelector(".playoffs-progress")).toHaveTextContent("2/14 results revealed");
+    const firstSemifinalReveal = within(upperSemifinal).getByRole("button", { name: "Reveal winner for Team Spirit versus PARIVISION" });
+    expect(firstSemifinalReveal).not.toBeDisabled();
+    fireEvent.click(firstSemifinalReveal);
+    expect(upperSemifinal).toHaveTextContent("WINNER");
+    expect(document.querySelector(".playoffs-progress")).toHaveTextContent("3/14 results revealed");
+
+    fireEvent.click(screen.getByRole("button", { name: "Reveal winner for Team Liquid versus Team Yandex" }));
+    fireEvent.click(screen.getByRole("button", { name: "Reveal winner for Nigma Galaxy versus Team Falcons" }));
+    const secondSemifinal = screen.getByRole("article", { name: "Team Yandex versus Nigma Galaxy" });
+    const secondSemifinalReveal = within(secondSemifinal).getByRole("button", { name: "Reveal winner for Team Yandex versus Nigma Galaxy" });
+    expect(secondSemifinalReveal).not.toBeDisabled();
+    fireEvent.click(secondSemifinalReveal);
+    expect(secondSemifinal).toHaveTextContent("WINNER");
 
     fireEvent.click(screen.getByRole("button", { name: "Reveal winner for Iron Wing versus BetBoom Team" }));
     expect(screen.getByRole("article", { name: "Iron Wing versus BetBoom Team" })).toHaveTextContent("WINNER");
