@@ -312,6 +312,94 @@
           }
         }
       ]
+    },
+    {
+      "id": "ti-2026-day10-1132678",
+      "openDotaSeriesId": 1132678,
+      "bestOf": 3,
+      "matchPageUrl": "https://liquipedia.net/dota2/index.php?title=Match:ID_TI2026Main_R04-M001&action=edit&redlink=1",
+      "teamA": "TEAM VISION",
+      "teamB": "Team Yandex",
+      "teamAId": 9572001,
+      "teamBId": 9823272,
+      "teamALogoUrl": "https://cdn.steamusercontent.com/ugc/10380389074903512947/5D074799695A862D17D4205285315FE20399B28D/",
+      "teamBLogoUrl": "https://cdn.steamusercontent.com/ugc/12970505637628494427/B04C3358F4E815ADFC2F8B1B8BE3AB0CE75C8881/",
+      "casters": [
+        "ODPixel",
+        "Fogged"
+      ],
+      "games": [
+        {
+          "number": 1,
+          "matchId": 8958842370,
+          "source": "opendota",
+          "vodUrl": null,
+          "heroes": {
+            "teamA": [
+              {
+                "name": "Lone Druid",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/lone_druid.png"
+              },
+              {
+                "name": "Techies",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/techies.png"
+              },
+              {
+                "name": "Keeper of the Light",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/keeper_of_the_light.png"
+              },
+              {
+                "name": "Slardar",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/slardar.png"
+              },
+              {
+                "name": "Pangolier",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/pangolier.png"
+              }
+            ],
+            "teamB": [
+              {
+                "name": "Hoodwink",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/hoodwink.png"
+              },
+              {
+                "name": "Centaur Warrunner",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/centaur.png"
+              },
+              {
+                "name": "Undying",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/undying.png"
+              },
+              {
+                "name": "Lina",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/lina.png"
+              },
+              {
+                "name": "Terrorblade",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/terrorblade.png"
+              }
+            ]
+          }
+        },
+        {
+          "number": 2,
+          "source": "concealed-fallback",
+          "vodUrl": null,
+          "heroes": {
+            "teamA": [],
+            "teamB": []
+          }
+        },
+        {
+          "number": 3,
+          "source": "concealed-fallback",
+          "vodUrl": null,
+          "heroes": {
+            "teamA": [],
+            "teamB": []
+          }
+        }
+      ]
     }
   ],
   "sources": {
@@ -319,5 +407,5 @@
     "liquipedia": "https://liquipedia.net/dota2/The_International/2026/Main_Event",
     "attribution": "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia."
   },
-  "generatedAt": "2026-08-22T09:07:22.316Z"
+  "generatedAt": "2026-08-22T10:08:20.104Z"
 }
