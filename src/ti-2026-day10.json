@@ -333,7 +333,7 @@
           "number": 1,
           "matchId": 8958842370,
           "source": "opendota",
-          "vodUrl": null,
+          "vodUrl": "https://youtu.be/y7wWO2FMlUo",
           "heroes": {
             "teamA": [
               {
@@ -383,11 +383,54 @@
         },
         {
           "number": 2,
-          "source": "concealed-fallback",
-          "vodUrl": null,
+          "matchId": 8958950792,
+          "source": "opendota",
+          "vodUrl": "https://youtu.be/y7wWO2FMlUo",
           "heroes": {
-            "teamA": [],
-            "teamB": []
+            "teamA": [
+              {
+                "name": "Nature's Prophet",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/furion.png"
+              },
+              {
+                "name": "Slardar",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/slardar.png"
+              },
+              {
+                "name": "Dark Willow",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/dark_willow.png"
+              },
+              {
+                "name": "Ogre Magi",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/ogre_magi.png"
+              },
+              {
+                "name": "Puck",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/puck.png"
+              }
+            ],
+            "teamB": [
+              {
+                "name": "Bounty Hunter",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/bounty_hunter.png"
+              },
+              {
+                "name": "Tidehunter",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/tidehunter.png"
+              },
+              {
+                "name": "Winter Wyvern",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/winter_wyvern.png"
+              },
+              {
+                "name": "Snapfire",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/snapfire.png"
+              },
+              {
+                "name": "Luna",
+                "iconUrl": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/luna.png"
+              }
+            ]
           }
         },
         {
@@ -407,5 +450,5 @@
     "liquipedia": "https://liquipedia.net/dota2/The_International/2026/Main_Event",
     "attribution": "Match, team, and hero metadata from OpenDota; series format, caster, and VOD metadata from Liquipedia."
   },
-  "generatedAt": "2026-08-22T10:08:20.104Z"
+  "generatedAt": "2026-08-22T12:10:24.862Z"
 }
